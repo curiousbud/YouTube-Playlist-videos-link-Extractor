@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Video Links</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .video-item {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .video-thumbnail {
+            width: 120px;
+            height: 90px;
+            margin-right: 20px;
+        }
+        .video-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .video-title a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .video-title a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="mb-4">YouTube Playlist Video Extractor</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    {% if video_data %}
+    <h3 class="mt-5">Extracted Video Links:</h3>
+    <div class="list-group">
+        {% for video in video_data %}
+            <div class="video-item">
+                <img src="{{ video.thumbnail }}" alt="Video Thumbnail" class="video-thumbnail">
+                <div class="video-details">
+                    <div class="video-title">
+                        <a href="{{ video.url }}" target="_blank">{{ video.title }}</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
