@@ -1,4 +1,4 @@
-#!/home/kali/tools/ytlinkEX/bin/python
+#!/home/ark/tools/YouTube-Playlist-videos-link-Extractor/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

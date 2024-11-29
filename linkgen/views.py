@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from pytube import Playlist
+from pytubefix import Playlist
 from .forms import LinkForm
 import concurrent.futures
 

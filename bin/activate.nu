@@ -32,7 +32,7 @@ export-env {
       }
     }
 
-    let virtual_env = '/home/kali/tools/ytlinkEX'
+    let virtual_env = '/home/ark/tools/YouTube-Playlist-videos-link-Extractor'
     let bin = 'bin'
 
     let is_windows = ($nu.os-info.family) == 'windows'
