@@ -3,72 +3,482 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playlist Video Links</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>YouTube Playlist Video Extractor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
         }
         .container {
-            margin-top: 50px;
+            margin-top: 30px;
         }
         .video-item {
-            display: flex;
-            margin-bottom: 20px;
-            align-items: center;
+            transition: transform 0.2s;
+        }
+        .video-item:hover {
+            transform: translateY(-2px);
         }
         .video-thumbnail {
             width: 120px;
             height: 90px;
-            margin-right: 20px;
+            object-fit: cover;
+            border-radius: 8px;
         }
-        .video-details {
-            display: flex;
-            flex-direction: column;
+        .copy-btn {
+            transition: all 0.2s;
         }
-        .video-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
+        .copy-btn:hover {
+            transform: scale(1.05);
         }
-        .video-title a {
-            text-decoration: none;
-            color: #007bff;
+        .playlist-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        .video-title a:hover {
-            text-decoration: underline;
+        .video-duration {
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+        }
+        .thumbnail-container {
+            position: relative;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 class="mb-4">YouTube Playlist Video Extractor</h2>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="text-center mb-4">
+                <i class="bi bi-youtube text-danger"></i>
+                YouTube Playlist Video Extractor
+            </h1>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            {{ form.as_p }}
+            <!-- Form Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% load crispy_forms_tags %}
+                        {{ form|crispy }}
+                        
+                        <!-- Pagination Controls -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="videos_per_page" class="form-label">Videos per page:</label>
+                                <select class="form-select" name="videos_per_page" id="videos_per_page">
+                                    <option value="5" {% if videos_per_page == 5 %}selected{% endif %}>5 videos</option>
+                                    <option value="10" {% if videos_per_page == 10 %}selected{% endif %}>10 videos</option>
+                                    <option value="15" {% if videos_per_page == 15 %}selected{% endif %}>15 videos</option>
+                                    <option value="20" {% if videos_per_page == 20 %}selected{% endif %}>20 videos</option>
+                                    <option value="50" {% if videos_per_page == 50 %}selected{% endif %}>50 videos</option>
+                                    <option value="-1" {% if videos_per_page == -1 %}selected{% endif %}>All videos</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Help text for playlist URLs -->
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> For Playlists, use URLs like:</h6>
+                            <ul class="mb-0">
+                                <li><code>https://www.youtube.com/playlist?list=PLxxxxxx</code></li>
+                                <li><code>https://www.youtube.com/watch?v=xxxxx&list=PLxxxxxx</code></li>
+                                <li><strong>Note:</strong> URLs with only <code>?si=</code> parameter are single videos, not playlists</li>
+                            </ul>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-search"></i> Extract Videos
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Playlist Info Section -->
+            {% if playlist_info %}
+            <div class="playlist-info">
+                <h4><i class="bi bi-collection-play"></i> {{ playlist_info.title }}</h4>
+                <p class="mb-1"><strong>Creator:</strong> {{ playlist_info.uploader }}</p>
+                <p class="mb-1"><strong>Total Videos:</strong> {{ playlist_info.video_count }}</p>
+                {% if total_videos and total_videos != playlist_info.video_count %}
+                <p class="mb-0"><strong>Showing:</strong> <span id="showing-count">{{ current_count }}</span> out of {{ total_videos }} videos</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Results Section -->
+            {% if video_data %}
+            {% if not playlist_info %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Single Video Detected:</strong> This appears to be a single video, not a playlist. 
+                For playlists, make sure your URL contains <code>list=</code> parameter.
+            </div>
+            {% endif %}
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>
+                    <i class="bi bi-list-ul"></i> 
+                    {% if playlist_info %}
+                        Playlist Videos (<span id="video-count">{{ video_data|length }}</span>)
+                    {% else %}
+                        Extracted Video (<span id="video-count">{{ video_data|length }}</span>)
+                    {% endif %}
+                </h3>
+                <div class="btn-group" role="group" id="copy-buttons">
+                    <button class="btn btn-success" id="copy-all-links-btn" onclick="copyAllLinks()">
+                        <i class="bi bi-clipboard"></i> Copy All Links
+                    </button>
+                    <button class="btn btn-info" id="copy-all-titles-btn" onclick="copyAllTitles()">
+                        <i class="bi bi-list"></i> Copy All Titles
+                    </button>
+                    <button class="btn btn-warning" id="copy-all-data-btn" onclick="copyAllData()">
+                        <i class="bi bi-collection"></i> Copy All Data
+                    </button>
+                </div>
+                
+                <!-- Loading indicator for when videos are still processing -->
+                <div id="loading-indicator" style="display: none;">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>Loading videos... <span id="loading-progress">0</span>/<span id="total-to-load">0</span></span>
+                </div>
+            </div>
+
+            <!-- Video List -->
+            <div class="row" id="video-container">
+                {% for video in video_data %}
+                <div class="col-12 mb-3">
+                    <div class="card video-item shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="thumbnail-container">
+                                        <img src="{{ video.thumbnail }}" alt="Video Thumbnail" class="video-thumbnail">
+                                        {% if video.duration %}
+                                        <div class="video-duration">
+                                            {{ video.duration|floatformat:0 }}s
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h5 class="card-title mb-2">
+                                        <a href="{{ video.url }}" target="_blank" class="text-decoration-none">
+                                            {{ video.title }}
+                                        </a>
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" value="{{ video.url }}" 
+                                                       id="video-url-{{ forloop.counter }}" readonly>
+                                                <button class="btn btn-outline-primary copy-btn" type="button" 
+                                                        onclick="copyToClipboard('video-url-{{ forloop.counter }}', this)"
+                                                        title="Copy Video Link">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                                <button class="btn btn-outline-info copy-btn" type="button" 
+                                                        onclick="copyVideoTitle('{{ video.title|escapejs }}', this)"
+                                                        title="Copy Video Title">
+                                                    <i class="bi bi-card-text"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" 
+                                                        onclick="copyVideoData('{{ video.title|escapejs }}', '{{ video.url }}', this)"
+                                                        title="Copy Title + Link">
+                                                    <i class="bi bi-collection"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-play-circle"></i> Watch
+                                                </a>
+                                                {% if video.view_count %}
+                                                <small class="text-muted align-self-center">{{ video.view_count|floatformat:0 }} views</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+    </div>
+</div>
 
-    {% if video_data %}
-    <h3 class="mt-5">Extracted Video Links:</h3>
-    <div class="list-group">
-        {% for video in video_data %}
-            <div class="video-item">
-                <img src="{{ video.thumbnail }}" alt="Video Thumbnail" class="video-thumbnail">
-                <div class="video-details">
-                    <div class="video-title">
-                        <a href="{{ video.url }}" target="_blank">{{ video.title }}</a>
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Copy individual link to clipboard
+function copyToClipboard(elementId, button) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999); // For mobile devices
+    
+    navigator.clipboard.writeText(element.value).then(function() {
+        showCopySuccess(button);
+    });
+}
+
+// Copy video title
+function copyVideoTitle(title, button) {
+    navigator.clipboard.writeText(title).then(function() {
+        showCopySuccess(button);
+    });
+}
+
+// Copy video data (title + link)
+function copyVideoData(title, url, button) {
+    const data = `${title}\n${url}`;
+    navigator.clipboard.writeText(data).then(function() {
+        showCopySuccess(button);
+    });
+}
+
+// Show copy success feedback
+function showCopySuccess(button) {
+    const originalHTML = button.innerHTML;
+    const originalClass = button.className;
+    
+    button.innerHTML = '<i class="bi bi-check"></i>';
+    button.className = button.className.replace('btn-outline-', 'btn-').replace('btn-primary', 'btn-success').replace('btn-info', 'btn-success').replace('btn-secondary', 'btn-success');
+    
+    setTimeout(function() {
+        button.innerHTML = originalHTML;
+        button.className = originalClass;
+    }, 2000);
+}
+
+// Copy all links to clipboard
+function copyAllLinks() {
+    const inputs = document.querySelectorAll('input[id^="video-url-"]');
+    const links = Array.from(inputs).map(input => input.value).join('\n');
+    
+    navigator.clipboard.writeText(links).then(function() {
+        showCopySuccess(document.getElementById('copy-all-links-btn'));
+    });
+}
+
+// Copy all titles
+function copyAllTitles() {
+    const titles = [];
+    document.querySelectorAll('.card-title a').forEach(link => {
+        titles.push(link.textContent.trim());
+    });
+    
+    navigator.clipboard.writeText(titles.join('\n')).then(function() {
+        showCopySuccess(document.getElementById('copy-all-titles-btn'));
+    });
+}
+
+// Copy all data (titles + links)
+function copyAllData() {
+    const data = [];
+    const inputs = document.querySelectorAll('input[id^="video-url-"]');
+    
+    inputs.forEach((input, index) => {
+        const videoItem = input.closest('.card');
+        const title = videoItem.querySelector('.card-title a').textContent.trim();
+        data.push(`${index + 1}. ${title}\n   ${input.value}\n`);
+    });
+    
+    navigator.clipboard.writeText(data.join('\n')).then(function() {
+        showCopySuccess(document.getElementById('copy-all-data-btn'));
+    });
+}
+
+// Show loading indicator and disable copy buttons
+function showLoading() {
+    document.getElementById('loading-indicator').style.display = 'block';
+    document.getElementById('copy-buttons').style.display = 'none';
+}
+
+// Hide loading indicator and enable copy buttons
+function hideLoading() {
+    document.getElementById('loading-indicator').style.display = 'none';
+    document.getElementById('copy-buttons').style.display = 'block';
+}
+
+// Update progress counter
+function updateProgress(processed, total) {
+    document.getElementById('loading-progress').textContent = processed;
+    document.getElementById('total-to-load').textContent = total;
+    document.getElementById('video-count').textContent = processed;
+    
+    // Also update the showing count if it exists
+    const showingCount = document.getElementById('showing-count');
+    if (showingCount) {
+        showingCount.textContent = processed;
+    }
+}
+
+// Add video to the list
+function addVideoToList(video, index) {
+    const container = document.getElementById('video-container');
+    const videoHtml = `
+        <div class="col-12 mb-3">
+            <div class="card video-item shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="thumbnail-container">
+                                <img src="${video.thumbnail}" alt="Video Thumbnail" class="video-thumbnail">
+                                ${video.duration ? `<div class="video-duration">${Math.round(video.duration)}s</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h5 class="card-title mb-2">
+                                <a href="${video.url}" target="_blank" class="text-decoration-none">
+                                    ${video.title}
+                                </a>
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" value="${video.url}" 
+                                               id="video-url-${index}" readonly>
+                                        <button class="btn btn-outline-primary copy-btn" type="button" 
+                                                onclick="copyToClipboard('video-url-${index}', this)"
+                                                title="Copy Video Link">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info copy-btn" type="button" 
+                                                onclick="copyVideoTitle('${video.title.replace(/'/g, "\\'")}', this)"
+                                                title="Copy Video Title">
+                                            <i class="bi bi-card-text"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary copy-btn" type="button" 
+                                                onclick="copyVideoData('${video.title.replace(/'/g, "\\'")}', '${video.url}', this)"
+                                                title="Copy Title + Link">
+                                            <i class="bi bi-collection"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex gap-2">
+                                        <a href="${video.url}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-play-circle"></i> Watch
+                                        </a>
+                                        ${video.view_count ? `<small class="text-muted align-self-center">${Math.round(video.view_count)} views</small>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-</div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', videoHtml);
+}
+
+// Check if we need to load more videos on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent form resubmission dialog on page reload
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    
+    // Add event listener to pagination dropdown
+    const paginationSelect = document.getElementById('videos_per_page');
+    if (paginationSelect) {
+        paginationSelect.addEventListener('change', function() {
+            // Get the current URL parameters to preserve the current link input
+            const linkInput = document.querySelector('input[name="link"]');
+            if (linkInput && linkInput.value.trim()) {
+                // Automatically submit the form when pagination changes
+                document.querySelector('form').submit();
+            }
+        });
+    }
+    
+    // Check if there are remaining videos to process
+    fetch('/check-remaining-videos/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.has_remaining) {
+            loadRemainingVideos(data.video_ids, data.current_count);
+        }
+    });
+});
+
+// Load remaining videos one by one
+function loadRemainingVideos(videoIds, currentCount) {
+    if (videoIds.length === 0) {
+        hideLoading();
+        return;
+    }
+    
+    showLoading();
+    updateProgress(currentCount, currentCount + videoIds.length);
+    
+    let processed = currentCount;
+    
+    // Process videos one by one to show real-time updates
+    function processNext(index) {
+        if (index >= videoIds.length) {
+            hideLoading();
+            return;
+        }
+        
+        const videoId = videoIds[index];
+        
+        fetch(`/process-video/${videoId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                processed++;
+                addVideoToList(data.video, processed);
+                updateProgress(processed, currentCount + videoIds.length);
+            }
+            
+            // Process next video after a short delay
+            setTimeout(() => processNext(index + 1), 100);
+        })
+        .catch(error => {
+            console.error('Error processing video:', error);
+            // Continue with next video even if one fails
+            setTimeout(() => processNext(index + 1), 100);
+        });
+    }
+    
+    // Start processing
+    processNext(0);
+}
+</script>
 
 </body>
 </html>

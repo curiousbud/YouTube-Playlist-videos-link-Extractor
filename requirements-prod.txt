@@ -1,0 +1,33 @@
+# Production requirements for YouTube Playlist Video Extractor
+# Core Django and dependencies
+Django>=5.1.7,<5.2
+yt-dlp>=2024.12.13
+
+# Forms and UI
+django-crispy-forms>=2.3,<3.0
+crispy-bootstrap5>=2024.2,<2025.0
+
+# Production server
+gunicorn>=21.2.0,<22.0
+whitenoise>=6.6.0,<7.0
+
+# Database (uncomment what you need)
+# psycopg2-binary>=2.9.9,<3.0  # PostgreSQL
+# mysqlclient>=2.2.4,<3.0      # MySQL
+
+# Caching and performance
+redis>=5.0.1,<6.0
+django-redis>=5.4.0,<6.0
+
+# Security and monitoring
+django-cors-headers>=4.3.1,<5.0
+django-ratelimit>=4.1.0,<5.0
+
+# Environment management
+python-decouple>=3.8,<4.0
+
+# Deployment helpers
+dj-database-url>=2.1.0,<3.0
+
+# Optional: Monitoring and logging
+# sentry-sdk>=1.40.0,<2.0
