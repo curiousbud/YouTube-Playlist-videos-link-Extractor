@@ -1,6 +1,6 @@
 # Production requirements for YouTube Playlist Video Extractor
-# Core Django and dependencies
-Django>=5.1.7,<5.2
+# Core Django and dependencies (Security Updates: CVE fixes)
+Django>=5.1.11,<5.2
 yt-dlp>=2024.12.13
 
 # Forms and UI
@@ -18,6 +18,10 @@ whitenoise>=6.6.0,<7.0
 # Caching and performance
 redis>=5.0.1,<6.0
 django-redis>=5.4.0,<6.0
+
+# Security updates (CVE fixes)
+requests>=2.32.4,<3.0
+urllib3>=2.5.0,<3.0
 
 # Security and monitoring
 django-cors-headers>=4.3.1,<5.0

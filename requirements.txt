@@ -1,5 +1,5 @@
-# Core Django Framework
-Django>=5.1.7,<5.2
+# Core Django Framework (Security Update: CVE fixes)
+Django>=5.1.11,<5.2
 asgiref>=3.8.1,<4.0
 sqlparse>=0.5.3,<1.0
 
@@ -10,6 +10,7 @@ crispy-bootstrap5>=2024.10
 # YouTube API - Using yt-dlp as it's actively maintained
 yt-dlp>=2024.12.13
 
-# Security and utilities
-requests>=2.32.3,<3.0
+# Security and utilities (Security Updates: CVE fixes)
+requests>=2.32.4,<3.0
+urllib3>=2.5.0,<3.0
 certifi>=2025.1.31
