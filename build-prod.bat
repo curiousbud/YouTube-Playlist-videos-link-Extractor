@@ -17,6 +17,11 @@ REM Install production dependencies
 echo 📦 Installing production dependencies...
 pip install -r requirements-prod.txt
 
+REM Create logs directory first (needed for Django logging)
+if not exist "logs" mkdir logs
+if not exist "logs\django.log" echo. > "logs\django.log"
+echo 📁 Created logs directory and log file
+
 REM Run security check
 echo 🔒 Running security check...
 python manage.py check --deploy --settings=ytlinkEX.settings_prod
@@ -28,9 +33,6 @@ python manage.py collectstatic --noinput --settings=ytlinkEX.settings_prod
 REM Run migrations
 echo 🗄️ Running database migrations...
 python manage.py migrate --settings=ytlinkEX.settings_prod
-
-REM Create logs directory if it doesn't exist
-if not exist "logs" mkdir logs
 
 REM Test that everything works
 echo 🧪 Testing production configuration...

@@ -22,6 +22,11 @@ echo "✅ Virtual environment activated"
 echo "📦 Installing production dependencies..."
 pip install -r requirements-prod.txt
 
+# Create logs directory first (needed for Django logging)
+mkdir -p logs
+touch logs/django.log
+echo "📁 Created logs directory and log file"
+
 # Run security check
 echo "🔒 Running security check..."
 python manage.py check --deploy --settings=ytlinkEX.settings_prod
@@ -33,9 +38,6 @@ python manage.py collectstatic --noinput --settings=ytlinkEX.settings_prod
 # Run migrations
 echo "🗄️ Running database migrations..."
 python manage.py migrate --settings=ytlinkEX.settings_prod
-
-# Create logs directory if it doesn't exist
-mkdir -p logs
 
 # Test that everything works
 echo "🧪 Testing production configuration..."
