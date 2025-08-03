@@ -44,6 +44,15 @@ db.sqlite3-journal
 .env.local
 .env.prod
 
+# Development documentation (keep local only)
+DEPLOYMENT_STATUS.md
+SECURITY_SETUP.md
+DEPLOYMENT.md
+DEPLOYMENT_CHECKLIST.md
+UPGRADE_SUMMARY.md
+logs/
+*.log
+
 # IDE
 .vscode/
 .idea/
