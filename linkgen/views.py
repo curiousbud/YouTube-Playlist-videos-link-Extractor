@@ -71,9 +71,11 @@ def ytlink(request):
     video_data = []
     playlist_info = {}
     videos_per_page = int(request.POST.get('videos_per_page', 10))  # Default 10 per page
+    view_mode = request.POST.get('view_mode', 'paginated')  # 'all' or 'paginated'
     
     # Store pagination preference in session
     request.session['videos_per_page'] = videos_per_page
+    request.session['view_mode'] = view_mode
 
     if request.method == 'POST' and form.is_valid():
         link = form.cleaned_data['link']
@@ -127,92 +129,69 @@ def ytlink(request):
                                     video_ids.append(entry['id'])
                             
                             if video_ids:
-                                # For real-time loading with pagination
+                                # For real-time loading system
                                 total_videos = len(video_ids)
                                 
-                                # Use pagination settings
-                                if videos_per_page == -1:  # "All" option
-                                    videos_to_show = total_videos
-                                else:
-                                    videos_to_show = min(videos_per_page, total_videos)
+                                # Store all video IDs for real-time processing
+                                request.session['all_video_ids'] = video_ids
+                                request.session['total_video_count'] = total_videos
+                                request.session['playlist_title'] = playlist_info.get('title', 'Unknown')
+                                request.session['playlist_uploader'] = playlist_info.get('uploader', 'Unknown')
                                 
-                                # Always use real-time loading for playlists > 5 videos or when pagination is used
-                                if total_videos > 5 or videos_per_page != -1:
-                                    # Return minimal data for real-time processing
-                                    video_data = []
-                                    initial_batch = min(3, videos_to_show)  # Show first 3 immediately
+                                # Load initial batch immediately (first 3-5 videos)
+                                initial_batch_size = min(5, total_videos)
+                                initial_video_ids = video_ids[:initial_batch_size]
+                                
+                                # Fetch initial videos concurrently for immediate display
+                                max_workers = min(5, len(initial_video_ids))
+                                with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                                    future_to_id = {executor.submit(fetch_video_details_fast, vid_id): vid_id 
+                                                  for vid_id in initial_video_ids}
                                     
-                                    for vid_id in video_ids[:initial_batch]:
-                                        video_data.append(fetch_video_details_fast(vid_id))
+                                    temp_video_data = []
+                                    for future in concurrent.futures.as_completed(future_to_id):
+                                        try:
+                                            result = future.result(timeout=15)
+                                            temp_video_data.append(result)
+                                        except Exception as e:
+                                            vid_id = future_to_id[future]
+                                            temp_video_data.append({
+                                                'url': f"https://www.youtube.com/watch?v={vid_id}",
+                                                'title': 'Error loading video',
+                                                'thumbnail': '',
+                                                'duration': 0,
+                                                'view_count': 0,
+                                                'upload_date': '',
+                                            })
                                     
-                                    # Store remaining video IDs for client-side processing
-                                    remaining_ids = video_ids[initial_batch:videos_to_show]
-                                    request.session['remaining_video_ids'] = remaining_ids
-                                    request.session['current_video_count'] = len(video_data)
-                                    request.session['total_video_count'] = videos_to_show
-                                    request.session['playlist_title'] = playlist_info.get('title', 'Unknown')
-                                else:
-                                    # Use original concurrent processing for small playlists
-                                    max_workers = min(15, len(video_ids))
-                                    
-                                    # Fetch video details concurrently
-                                    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                                        # Submit all tasks
-                                        future_to_id = {executor.submit(fetch_video_details_fast, vid_id): vid_id 
-                                                      for vid_id in video_ids}
-                                        
-                                        # Collect results as they complete
-                                        temp_video_data = []
-                                        for future in concurrent.futures.as_completed(future_to_id):
+                                    # Maintain order for initial batch
+                                    id_to_data = {}
+                                    for data in temp_video_data:
+                                        if data and data.get('url'):
                                             try:
-                                                result = future.result(timeout=20)  # Increased timeout
-                                                temp_video_data.append(result)
-                                            except concurrent.futures.TimeoutError:
-                                                vid_id = future_to_id[future]
-                                                temp_video_data.append({
-                                                    'url': f"https://www.youtube.com/watch?v={vid_id}",
-                                                    'title': 'Timeout loading video',
-                                                    'thumbnail': '',
-                                                    'duration': 0,
-                                                    'view_count': 0,
-                                                    'upload_date': '',
-                                                })
-                                            except Exception as e:
-                                                vid_id = future_to_id[future]
-                                                temp_video_data.append({
-                                                    'url': f"https://www.youtube.com/watch?v={vid_id}",
-                                                    'title': 'Error loading video',
-                                                    'thumbnail': '',
-                                                    'duration': 0,
-                                                    'view_count': 0,
-                                                    'upload_date': '',
-                                                })
-                                        
-                                        # Create mapping to maintain order
-                                        id_to_data = {}
-                                        for data in temp_video_data:
-                                            if data and data.get('url'):
-                                                try:
-                                                    vid_id = data['url'].split('v=')[1].split('&')[0]
-                                                    id_to_data[vid_id] = data
-                                                except (IndexError, AttributeError):
-                                                    pass
-                                        
-                                        # Maintain original playlist order
-                                        video_data = []
-                                        for vid_id in video_ids:
-                                            if vid_id in id_to_data:
-                                                video_data.append(id_to_data[vid_id])
-                                            else:
-                                                # Add placeholder for missing videos
-                                                video_data.append({
-                                                    'url': f"https://www.youtube.com/watch?v={vid_id}",
-                                                    'title': 'Video not found or private',
-                                                    'thumbnail': '',
-                                                    'duration': 0,
-                                                    'view_count': 0,
-                                                    'upload_date': '',
-                                                })
+                                                vid_id = data['url'].split('v=')[1].split('&')[0]
+                                                id_to_data[vid_id] = data
+                                            except (IndexError, AttributeError):
+                                                pass
+                                    
+                                    video_data = []
+                                    for vid_id in initial_video_ids:
+                                        if vid_id in id_to_data:
+                                            video_data.append(id_to_data[vid_id])
+                                        else:
+                                            video_data.append({
+                                                'url': f"https://www.youtube.com/watch?v={vid_id}",
+                                                'title': 'Video not found or private',
+                                                'thumbnail': '',
+                                                'duration': 0,
+                                                'view_count': 0,
+                                                'upload_date': '',
+                                            })
+                                
+                                # Store remaining video IDs for client-side loading
+                                remaining_ids = video_ids[initial_batch_size:]
+                                request.session['remaining_video_ids'] = remaining_ids
+                                request.session['current_video_count'] = len(video_data)
                             else:
                                 pass  # No valid video IDs found in playlist
                         else:
@@ -239,8 +218,10 @@ def ytlink(request):
         'video_data': video_data, 
         'playlist_info': playlist_info,
         'videos_per_page': videos_per_page,
+        'view_mode': view_mode,
         'total_videos': request.session.get('total_video_count', len(video_data)),
         'current_count': request.session.get('current_video_count', len(video_data)),
+        'has_remaining': len(request.session.get('remaining_video_ids', [])) > 0,
     })
 
 @csrf_exempt
@@ -269,14 +250,102 @@ def check_remaining_videos(request):
         current_count = request.session.get('current_video_count', 0)
         
         if remaining_ids:
-            # Clear the session data after retrieving it
-            del request.session['remaining_video_ids']
+            # Don't clear the session data yet - let client control the flow
             return JsonResponse({
                 'has_remaining': True,
                 'video_ids': remaining_ids,
-                'current_count': current_count
+                'current_count': current_count,
+                'total_count': request.session.get('total_video_count', 0)
             })
         
         return JsonResponse({'has_remaining': False})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@csrf_exempt
+def get_paginated_videos(request):
+    """Get a specific page of videos from the stored video IDs"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            page = int(data.get('page', 1))
+            per_page = int(data.get('per_page', 10))
+            
+            all_video_ids = request.session.get('all_video_ids', [])
+            if not all_video_ids:
+                return JsonResponse({'success': False, 'error': 'No video data available'})
+            
+            # Calculate pagination
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            page_video_ids = all_video_ids[start_idx:end_idx]
+            
+            if not page_video_ids:
+                return JsonResponse({'success': False, 'error': 'Invalid page'})
+            
+            # Fetch video details for this page
+            video_data = []
+            max_workers = min(10, len(page_video_ids))
+            
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_id = {executor.submit(fetch_video_details_fast, vid_id): vid_id 
+                              for vid_id in page_video_ids}
+                
+                temp_video_data = []
+                for future in concurrent.futures.as_completed(future_to_id):
+                    try:
+                        result = future.result(timeout=15)
+                        temp_video_data.append(result)
+                    except Exception as e:
+                        vid_id = future_to_id[future]
+                        temp_video_data.append({
+                            'url': f"https://www.youtube.com/watch?v={vid_id}",
+                            'title': 'Error loading video',
+                            'thumbnail': '',
+                            'duration': 0,
+                            'view_count': 0,
+                            'upload_date': '',
+                        })
+                
+                # Maintain order
+                id_to_data = {}
+                for data in temp_video_data:
+                    if data and data.get('url'):
+                        try:
+                            vid_id = data['url'].split('v=')[1].split('&')[0]
+                            id_to_data[vid_id] = data
+                        except (IndexError, AttributeError):
+                            pass
+                
+                for vid_id in page_video_ids:
+                    if vid_id in id_to_data:
+                        video_data.append(id_to_data[vid_id])
+                    else:
+                        video_data.append({
+                            'url': f"https://www.youtube.com/watch?v={vid_id}",
+                            'title': 'Video not found or private',
+                            'thumbnail': '',
+                            'duration': 0,
+                            'view_count': 0,
+                            'upload_date': '',
+                        })
+            
+            total_videos = len(all_video_ids)
+            total_pages = (total_videos + per_page - 1) // per_page
+            
+            return JsonResponse({
+                'success': True,
+                'videos': video_data,
+                'page': page,
+                'per_page': per_page,
+                'total_videos': total_videos,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            })
+            
+        except Exception as e:
+            logger.error(f"Error in get_paginated_videos: {e}")
+            return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})

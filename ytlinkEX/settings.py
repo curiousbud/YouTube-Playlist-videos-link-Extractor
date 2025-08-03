@@ -20,12 +20,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Generate a new secret key for production: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 SECRET_KEY = 'django-insecure-729u5rmn^l-e7-s6$4$mf4r#q!ru%cx5_6^uu!+rdw^qwep8b6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: define the correct hosts in production
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+
+# Security settings for production deployment
+# These should be enabled when deploying to production with HTTPS
+SECURE_HSTS_SECONDS = 0  # Set to 31536000 (1 year) in production with HTTPS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False  # Set to True in production
+SECURE_HSTS_PRELOAD = False  # Set to True in production
+SECURE_SSL_REDIRECT = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 
 # Application definition
