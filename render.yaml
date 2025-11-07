@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: ytlinkex-web
+    env: python
+    plan: free
+    branch: main
+  buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "gunicorn ytlinkEX.wsgi:application --bind 0.0.0.0:$PORT"
+    autoDeploy: true
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        # Use the Render-tailored settings file that reads secrets from environment
+        value: "ytlinkEX.settings_render"
+      - key: SECRET_KEY
+        # Set this secret in the Render dashboard rather than committing it here
+        value: "REPLACE_ME"
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+# Optional worker template (uncomment and adapt if you add background worker code)
+## Worker template (uncomment and adapt if you add background worker code)
+## Note: Render free plan may not support long-running workers reliably.
+##  - type: worker
+##    name: ytlinkex-worker
+##    env: python
+##    plan: starter
+##    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+##    startCommand: "python manage.py run_worker --settings=ytlinkEX.settings_render"
+##    autoDeploy: true
