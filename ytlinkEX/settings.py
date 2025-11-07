@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,11 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Generate a new secret key for production: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-SECRET_KEY = 'django-insecure-729u5rmn^l-e7-s6$4$mf4r#q!ru%cx5_6^uu!+rdw^qwep8b6'
+# In production, set the SECRET_KEY environment variable (Render config or other).
+# Generate a new secret key for production locally with:
+# python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# For local development a short fallback is provided, but DO NOT use it in production.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
+
+# Safety check: ensure SECRET_KEY is configured in non-debug environments
+if not DEBUG and SECRET_KEY == 'dev-secret-change-me':
+    raise RuntimeError('SECRET_KEY must be set in the environment for production deployments')
 
 # SECURITY WARNING: define the correct hosts in production
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
