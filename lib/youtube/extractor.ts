@@ -81,7 +81,9 @@ export async function fetchVideoDetails(videoId: string): Promise<VideoData> {
 
     return videoData;
   } catch (error) {
-    console.error(`Error fetching video details for ${videoId}:`, error);
+    // Sanitize videoId for logging (only allow alphanumeric, dash, underscore)
+    const sanitizedVideoId = videoId.replace(/[^a-zA-Z0-9_-]/g, '');
+    console.error('Error fetching video details for video:', sanitizedVideoId, error);
     
     return {
       url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -138,7 +140,9 @@ export async function fetchPlaylistVideos(playlistId: string): Promise<string[]>
 
     return videoIds;
   } catch (error) {
-    console.error(`Error fetching playlist videos for ${playlistId}:`, error);
+    // Sanitize playlistId for logging (only allow alphanumeric, dash, underscore)
+    const sanitizedPlaylistId = playlistId.replace(/[^a-zA-Z0-9_-]/g, '');
+    console.error('Error fetching playlist videos for playlist:', sanitizedPlaylistId, error);
     return [];
   }
 }
@@ -169,7 +173,9 @@ export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInf
 
     return null;
   } catch (error) {
-    console.error(`Error fetching playlist info for ${playlistId}:`, error);
+    // Sanitize playlistId for logging (only allow alphanumeric, dash, underscore)
+    const sanitizedPlaylistId = playlistId.replace(/[^a-zA-Z0-9_-]/g, '');
+    console.error('Error fetching playlist info for playlist:', sanitizedPlaylistId, error);
     return null;
   }
 }
