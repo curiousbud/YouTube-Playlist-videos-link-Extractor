@@ -312,9 +312,12 @@ function VideoList({ videos, totalVideos, viewMode, videosPerPage }) {
                 className: "mt-6 flex items-center justify-center gap-2",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>setCurrentPage((p)=>Math.max(1, p - 1)),
+                        onClick: (e)=>{
+                            e.preventDefault();
+                            setCurrentPage((p)=>Math.max(1, p - 1));
+                        },
                         disabled: currentPage === 1,
-                        className: "px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-colors",
+                        className: "px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500",
                         children: "Previous"
                     }, void 0, false, {
                         fileName: "[project]/components/VideoList.tsx",
@@ -322,7 +325,7 @@ function VideoList({ videos, totalVideos, viewMode, videosPerPage }) {
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "px-4 py-2 text-gray-700",
+                        className: "px-4 py-2 text-gray-700 dark:text-gray-200",
                         children: [
                             "Page ",
                             currentPage,
@@ -335,9 +338,12 @@ function VideoList({ videos, totalVideos, viewMode, videosPerPage }) {
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>setCurrentPage((p)=>Math.min(totalPages, p + 1)),
+                        onClick: (e)=>{
+                            e.preventDefault();
+                            setCurrentPage((p)=>Math.min(totalPages, p + 1));
+                        },
                         disabled: currentPage === totalPages,
-                        className: "px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-colors",
+                        className: "px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500",
                         children: "Next"
                     }, void 0, false, {
                         fileName: "[project]/components/VideoList.tsx",
@@ -466,15 +472,15 @@ function ExtractorForm() {
         }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-8",
+        className: "min-h-0 py-2",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "container mx-auto px-4 max-w-6xl",
+            className: "container mx-auto px-2 sm:px-4 max-w-4xl w-full",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "text-center mb-8",
+                    className: "text-center mb-4",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                            className: "text-4xl font-bold text-gray-900 mb-2",
+                            className: "text-3xl font-bold text-gray-900 mb-1",
                             children: "YouTube Playlist Video Extractor"
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
@@ -482,7 +488,7 @@ function ExtractorForm() {
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-gray-600",
+                            className: "text-gray-700 text-base",
                             children: "Extract video links and metadata from YouTube playlists"
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
@@ -496,7 +502,7 @@ function ExtractorForm() {
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "bg-white rounded-lg shadow-md p-6 mb-8",
+                    className: "bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-[0_2px_16px_0_rgba(0,0,0,0.7)] border border-gray-200 dark:border-gray-700 p-2 sm:p-4 mb-4 w-full max-w-full",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                             onSubmit: handleSubmit,
@@ -506,7 +512,7 @@ function ExtractorForm() {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                             htmlFor: "link",
-                                            className: "block text-sm font-medium text-gray-700 mb-2",
+                                            className: "block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2",
                                             children: "YouTube Playlist or Video URL"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
@@ -519,7 +525,7 @@ function ExtractorForm() {
                                             value: link,
                                             onChange: (e)=>setLink(e.target.value),
                                             placeholder: "https://www.youtube.com/playlist?list=...",
-                                            className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                            className: "w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base",
                                             required: true
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
@@ -527,7 +533,7 @@ function ExtractorForm() {
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            className: "mt-1 text-sm text-gray-500",
+                                            className: "mt-1 text-sm text-gray-800 dark:text-gray-300",
                                             children: "Enter a YouTube playlist URL (with list= parameter) or individual video URL"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
@@ -541,13 +547,13 @@ function ExtractorForm() {
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-4",
+                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                     htmlFor: "viewMode",
-                                                    className: "block text-sm font-medium text-gray-700 mb-2",
+                                                    className: "block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2",
                                                     children: "View Mode"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
@@ -558,7 +564,7 @@ function ExtractorForm() {
                                                     id: "viewMode",
                                                     value: viewMode,
                                                     onChange: (e)=>setViewMode(e.target.value),
-                                                    className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                                    className: "w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base",
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                                             value: "paginated",
@@ -592,7 +598,7 @@ function ExtractorForm() {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                     htmlFor: "perPage",
-                                                    className: "block text-sm font-medium text-gray-700 mb-2",
+                                                    className: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2",
                                                     children: "Videos per Page"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
@@ -603,7 +609,7 @@ function ExtractorForm() {
                                                     id: "perPage",
                                                     value: videosPerPage,
                                                     onChange: (e)=>setVideosPerPage(parseInt(e.target.value)),
-                                                    className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                                    className: "w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base",
                                                     disabled: viewMode === 'all',
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -675,7 +681,7 @@ function ExtractorForm() {
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                     type: "submit",
                                     disabled: loading,
-                                    className: "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed",
+                                    className: "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 sm:py-3 px-2 sm:px-6 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base",
                                     children: loading ? 'Extracting...' : 'Extract Videos'
                                 }, void 0, false, {
                                     fileName: "[project]/components/ExtractorForm.tsx",

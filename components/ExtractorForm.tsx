@@ -96,23 +96,23 @@ export default function ExtractorForm() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="min-h-0 py-2">
+      <div className="container mx-auto px-2 sm:px-4 max-w-4xl w-full">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">
             YouTube Playlist Video Extractor
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-700 text-base">
             Extract video links and metadata from YouTube playlists
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-[0_2px_16px_0_rgba(0,0,0,0.7)] border border-gray-200 dark:border-gray-700 p-2 sm:p-4 mb-4 w-full max-w-full">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="link" className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
                 YouTube Playlist or Video URL
               </label>
               <input
@@ -121,24 +121,24 @@ export default function ExtractorForm() {
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="https://www.youtube.com/playlist?list=..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base"
                 required
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-800 dark:text-gray-300">
                 Enter a YouTube playlist URL (with list= parameter) or individual video URL
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4">
               <div>
-                <label htmlFor="viewMode" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="viewMode" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                   View Mode
                 </label>
                 <select
                   id="viewMode"
                   value={viewMode}
                   onChange={(e) => setViewMode(e.target.value as 'paginated' | 'all')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base"
                 >
                   <option value="paginated">Paginated View</option>
                   <option value="all">Load All (Real-time Stream)</option>
@@ -146,14 +146,14 @@ export default function ExtractorForm() {
               </div>
 
               <div>
-                <label htmlFor="perPage" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="perPage" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Videos per Page
                 </label>
                 <select
                   id="perPage"
                   value={videosPerPage}
                   onChange={(e) => setVideosPerPage(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-shadow shadow-sm dark:shadow dark:focus:shadow-lg focus:shadow-md text-xs sm:text-base"
                   disabled={viewMode === 'all'}
                 >
                   <option value="5">5</option>
@@ -169,7 +169,7 @@ export default function ExtractorForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 sm:py-3 px-2 sm:px-6 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {loading ? 'Extracting...' : 'Extract Videos'}
             </button>

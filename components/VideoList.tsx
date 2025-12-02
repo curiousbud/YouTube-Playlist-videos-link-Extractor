@@ -219,19 +219,19 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
       {viewMode === 'paginated' && totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-2">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={e => { e.preventDefault(); setCurrentPage((p) => Math.max(1, p - 1)); }}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-colors"
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Previous
           </button>
-          <span className="px-4 py-2 text-gray-700">
+          <span className="px-4 py-2 text-gray-700 dark:text-gray-200">
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            onClick={e => { e.preventDefault(); setCurrentPage((p) => Math.min(totalPages, p + 1)); }}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-colors"
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Next
           </button>
