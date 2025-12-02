@@ -1,4 +1,4 @@
-# YouTube Playlist Video Extractor - MERN Stack
+# YouTube Playlist Video Extractor
 
 A modern web application for extracting video links and metadata from YouTube playlists, built with the MERN stack (MongoDB, Express.js, React, Node.js) using Next.js 14.
 
