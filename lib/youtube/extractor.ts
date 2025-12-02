@@ -1,3 +1,17 @@
+/**
+ * Extracts the video ID from a YouTube URL
+ */
+export function extractVideoId(url: string): string | null {
+  const match = url.match(/(?:v=|\/v\/|youtu\.be\/|\/embed\/|shorts\/|\/watch\?v=)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+/**
+ * Extracts the playlist ID from a YouTube URL
+ */
+export function extractPlaylistId(url: string): string | null {
+  const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
 // Simple in-memory cache for playlist video IDs
 const playlistCache = new Map<string, { data: string[]; timestamp: number }>();
 

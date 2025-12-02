@@ -47,14 +47,8 @@ export default function ExtractorForm() {
         setPlaylistInfo(data.playlistInfo);
       }
 
-      // Load initial batch of videos
-      const initialBatch = data.videoIds.slice(0, Math.min(5, data.videoIds.length));
-      await loadVideos(initialBatch);
-
-      // If view mode is 'all', load remaining videos in background
-      if (viewMode === 'all' && data.videoIds.length > 5) {
-        loadRemainingVideos(data.videoIds.slice(5));
-      }
+      // Load all videos at once
+      await loadVideos(data.videoIds);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

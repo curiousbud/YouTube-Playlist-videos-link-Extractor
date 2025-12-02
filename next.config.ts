@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  images: {
+    domains: ['i.ytimg.com'],
+  },
+  // ...other config
 };
 
 export default nextConfig;

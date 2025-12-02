@@ -415,13 +415,8 @@ function ExtractorForm() {
             if (data.playlistInfo) {
                 setPlaylistInfo(data.playlistInfo);
             }
-            // Load initial batch of videos
-            const initialBatch = data.videoIds.slice(0, Math.min(5, data.videoIds.length));
-            await loadVideos(initialBatch);
-            // If view mode is 'all', load remaining videos in background
-            if (viewMode === 'all' && data.videoIds.length > 5) {
-                loadRemainingVideos(data.videoIds.slice(5));
-            }
+            // Load all videos at once
+            await loadVideos(data.videoIds);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally{
@@ -477,7 +472,7 @@ function ExtractorForm() {
                             children: "YouTube Playlist Video Extractor"
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 103,
+                            lineNumber: 97,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -485,13 +480,13 @@ function ExtractorForm() {
                             children: "Extract video links and metadata from YouTube playlists"
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 106,
+                            lineNumber: 100,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 102,
+                    lineNumber: 96,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -509,7 +504,7 @@ function ExtractorForm() {
                                             children: "YouTube Playlist or Video URL"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                            lineNumber: 115,
+                                            lineNumber: 109,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -522,7 +517,7 @@ function ExtractorForm() {
                                             required: true
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                            lineNumber: 118,
+                                            lineNumber: 112,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -530,13 +525,13 @@ function ExtractorForm() {
                                             children: "Enter a YouTube playlist URL (with list= parameter) or individual video URL"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                            lineNumber: 127,
+                                            lineNumber: 121,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                    lineNumber: 114,
+                                    lineNumber: 108,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -550,7 +545,7 @@ function ExtractorForm() {
                                                     children: "View Mode"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                                    lineNumber: 134,
+                                                    lineNumber: 128,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -564,7 +559,7 @@ function ExtractorForm() {
                                                             children: "Paginated View"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 143,
+                                                            lineNumber: 137,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -572,19 +567,19 @@ function ExtractorForm() {
                                                             children: "Load All (Real-time Stream)"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 144,
+                                                            lineNumber: 138,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                                    lineNumber: 137,
+                                                    lineNumber: 131,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                            lineNumber: 133,
+                                            lineNumber: 127,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -595,7 +590,7 @@ function ExtractorForm() {
                                                     children: "Videos per Page"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                                    lineNumber: 149,
+                                                    lineNumber: 143,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -610,7 +605,7 @@ function ExtractorForm() {
                                                             children: "5"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 159,
+                                                            lineNumber: 153,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -618,7 +613,7 @@ function ExtractorForm() {
                                                             children: "10"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 160,
+                                                            lineNumber: 154,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -626,7 +621,7 @@ function ExtractorForm() {
                                                             children: "15"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 161,
+                                                            lineNumber: 155,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -634,7 +629,7 @@ function ExtractorForm() {
                                                             children: "20"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 162,
+                                                            lineNumber: 156,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -642,7 +637,7 @@ function ExtractorForm() {
                                                             children: "30"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 163,
+                                                            lineNumber: 157,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -650,25 +645,25 @@ function ExtractorForm() {
                                                             children: "50"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                                            lineNumber: 164,
+                                                            lineNumber: 158,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                                    lineNumber: 152,
+                                                    lineNumber: 146,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ExtractorForm.tsx",
-                                            lineNumber: 148,
+                                            lineNumber: 142,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                    lineNumber: 132,
+                                    lineNumber: 126,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -678,13 +673,13 @@ function ExtractorForm() {
                                     children: loading ? 'Extracting...' : 'Extract Videos'
                                 }, void 0, false, {
                                     fileName: "[project]/components/ExtractorForm.tsx",
-                                    lineNumber: 169,
+                                    lineNumber: 163,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 113,
+                            lineNumber: 107,
                             columnNumber: 11
                         }, this),
                         error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -692,13 +687,13 @@ function ExtractorForm() {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 179,
+                            lineNumber: 173,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 112,
+                    lineNumber: 106,
                     columnNumber: 9
                 }, this),
                 playlistInfo && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -709,7 +704,7 @@ function ExtractorForm() {
                             children: playlistInfo.title
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 188,
+                            lineNumber: 182,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -723,13 +718,13 @@ function ExtractorForm() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 189,
+                            lineNumber: 183,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 187,
+                    lineNumber: 181,
                     columnNumber: 11
                 }, this),
                 videos.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$VideoList$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -739,7 +734,7 @@ function ExtractorForm() {
                     videosPerPage: videosPerPage
                 }, void 0, false, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 197,
+                    lineNumber: 191,
                     columnNumber: 11
                 }, this),
                 loading && videos.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -749,7 +744,7 @@ function ExtractorForm() {
                             className: "inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 208,
+                            lineNumber: 202,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -757,13 +752,13 @@ function ExtractorForm() {
                             children: "Loading videos..."
                         }, void 0, false, {
                             fileName: "[project]/components/ExtractorForm.tsx",
-                            lineNumber: 209,
+                            lineNumber: 203,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 207,
+                    lineNumber: 201,
                     columnNumber: 11
                 }, this),
                 loading && videos.length > 0 && videos.length < videoIds.length && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -779,23 +774,23 @@ function ExtractorForm() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ExtractorForm.tsx",
-                        lineNumber: 216,
+                        lineNumber: 210,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/ExtractorForm.tsx",
-                    lineNumber: 215,
+                    lineNumber: 209,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/ExtractorForm.tsx",
-            lineNumber: 100,
+            lineNumber: 94,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/ExtractorForm.tsx",
-        lineNumber: 99,
+        lineNumber: 93,
         columnNumber: 5
     }, this);
 }
