@@ -11,6 +11,8 @@ interface PlaylistInfo {
 }
 
 export default function ExtractorForm() {
+  // Threshold for switching to batch loading
+  const BATCH_THRESHOLD = 20;
   const [link, setLink] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,13 +44,17 @@ export default function ExtractorForm() {
       }
 
       setVideoIds(data.videoIds);
-      
+
       if (data.playlistInfo) {
         setPlaylistInfo(data.playlistInfo);
       }
 
-      // Load all videos at once
-      await loadVideos(data.videoIds);
+      // Use batch loading only if playlist exceeds threshold
+      if (data.videoIds.length > BATCH_THRESHOLD) {
+        await loadRemainingVideos(data.videoIds);
+      } else {
+        await loadVideos(data.videoIds);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
