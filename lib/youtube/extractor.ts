@@ -1,5 +1,6 @@
 import ytdl from 'ytdl-core';
 import { google } from 'googleapis';
+import type { youtube_v3 } from 'googleapis/build/src/apis/youtube/v3';
 
 const youtube = google.youtube({
   version: 'v3',
@@ -116,15 +117,17 @@ export async function fetchPlaylistVideos(playlistId: string): Promise<string[]>
     let nextPageToken: string | undefined = undefined;
 
     do {
-      const response: any = await youtube.playlistItems.list({
+      const resp = await youtube.playlistItems.list({
         part: ['contentDetails'],
         playlistId: playlistId,
         maxResults: 50,
         pageToken: nextPageToken,
       });
 
-      if (response.data.items) {
-        for (const item of response.data.items) {
+      const response: youtube_v3.Schema$PlaylistItemListResponse = resp.data;
+
+      if (response.items) {
+        for (const item of response.items) {
           const videoId = item.contentDetails?.videoId;
           if (videoId) {
             videoIds.push(videoId);
@@ -132,7 +135,7 @@ export async function fetchPlaylistVideos(playlistId: string): Promise<string[]>
         }
       }
 
-      nextPageToken = response.data.nextPageToken || undefined;
+      nextPageToken = response.nextPageToken || undefined;
     } while (nextPageToken);
 
     // Cache the result
@@ -156,21 +159,21 @@ export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInf
       console.error('YouTube API key is not set.');
       return null;
     }
-
-    const response = await youtube.playlists.list({
+    const resp = await youtube.playlists.list({
       part: ['snippet', 'contentDetails'],
       id: [playlistId],
     });
 
-    if (response.data.items && response.data.items.length > 0) {
-      const playlist = response.data.items[0];
+    const response: youtube_v3.Schema$PlaylistListResponse | undefined = resp.data;
+
+    if (response && response.items && response.items.length > 0) {
+      const playlist = response.items[0];
       return {
         title: playlist.snippet?.title || 'Unknown Playlist',
         uploader: playlist.snippet?.channelTitle || 'Unknown',
         videoCount: playlist.contentDetails?.itemCount || 0,
       };
     }
-
     return null;
   } catch (error) {
     // Sanitize playlistId for logging (only allow alphanumeric, dash, underscore)

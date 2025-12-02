@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { VideoData } from '@/lib/youtube/extractor';
+import Image from 'next/image';
 
 interface VideoListProps {
   videos: VideoData[];
@@ -140,12 +141,14 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
               className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow"
             >
               {/* Thumbnail */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="relative">
                   {video.thumbnail ? (
-                    <img
+                    <Image
                       src={video.thumbnail}
                       alt={video.title}
+                      width={160}
+                      height={96}
                       className="w-40 h-24 object-cover rounded-lg"
                     />
                   ) : (
@@ -162,7 +165,7 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
               </div>
 
               {/* Video Info */}
-              <div className="flex-grow min-w-0">
+              <div className="grow min-w-0">
                 <h3 className="font-semibold text-gray-900 mb-1 truncate">
                   {actualIdx + 1}. {video.title}
                 </h3>
@@ -182,7 +185,7 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
               </div>
 
               {/* Action Buttons */}
-              <div className="flex-shrink-0 flex flex-col gap-2">
+              <div className="shrink-0 flex flex-col gap-2">
                 <button
                   onClick={() => copyToClipboard(video.url, `${videoIdForCopy}-link`)}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"

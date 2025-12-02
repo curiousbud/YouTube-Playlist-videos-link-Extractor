@@ -96,7 +96,7 @@ export default function ExtractorForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -184,7 +184,7 @@ export default function ExtractorForm() {
 
         {/* Playlist Info */}
         {playlistInfo && (
-          <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg shadow-md p-6 mb-8">
+          <div className="bg-linear-to-r from-purple-600 to-purple-800 text-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-2xl font-bold mb-2">{playlistInfo.title}</h2>
             <p className="text-purple-100">
               by {playlistInfo.uploader} • {playlistInfo.videoCount} videos
