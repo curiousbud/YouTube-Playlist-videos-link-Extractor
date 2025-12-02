@@ -1,10 +1,10 @@
-# YouTube Playlist Video Extractor
+# YouTube Playlist Video Extractor - MERN Stack
 
-A modern Django web application for extracting video links and metadata from YouTube playlists with advanced features like real-time loading, dual view modes, and comprehensive export options.
+A modern web application for extracting video links and metadata from YouTube playlists, built with the MERN stack (MongoDB, Express.js, React, Node.js) using Next.js 14.
 
-![Django](https://img.shields.io/badge/Django-4.2.14-green.svg)
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)
+![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ## ✨ Features
@@ -16,34 +16,36 @@ A modern Django web application for extracting video links and metadata from You
 - **CSV Export**: Export playlist data to CSV format for external use
 
 ### User Experience
-- **Real-time Loading**: Progressive video loading with live progress indicators and smooth animations
+- **Real-time Loading**: Progressive video loading with live progress indicators
 - **Dual View Modes**: 
   - **Paginated View**: Navigate through videos page by page (5, 10, 15, 20, 30, 50 videos per page)
   - **Real-time Stream**: Load all videos progressively in one continuous view
-- **Responsive Design**: Modern Bootstrap 5 interface optimized for desktop and mobile devices
+- **Responsive Design**: Modern Tailwind CSS interface optimized for desktop and mobile devices
 - **Interactive UI**: Toast notifications, loading spinners, and visual feedback
 
 ### Performance & Reliability
-- **Concurrent Processing**: Multi-threaded video fetching using ThreadPoolExecutor
-- **Smart Caching**: 1-hour cache for video metadata to reduce API calls and improve speed
+- **Concurrent Processing**: Parallel video fetching for improved performance
+- **Smart Caching**: 1-hour cache for video metadata to reduce API calls
 - **Error Handling**: Graceful handling of private, deleted, or unavailable videos
-- **Session Management**: Maintains state across page reloads and navigation
+- **TypeScript**: Full type safety throughout the application
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Django 4.2.14 with Python 3.8+
-- **Frontend**: Bootstrap 5.3, JavaScript ES6+, Bootstrap Icons
-- **YouTube Integration**: yt-dlp library for reliable video extraction
-- **Forms**: Django Crispy Forms with Bootstrap 5 styling
-- **Caching**: Django's built-in caching framework
-- **Database**: SQLite (development) / PostgreSQL (production ready)
+- **Frontend**: React 18+ with Next.js 14 (App Router)
+- **Backend**: Next.js API Routes (serverless functions)
+- **Database**: MongoDB (for link history storage)
+- **YouTube Integration**: YouTube Data API v3 + ytdl-core
+- **Styling**: Tailwind CSS
+- **Language**: TypeScript
+- **Caching**: In-memory caching with Redis support
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
-- Git
+- Node.js 18+ or higher
+- npm or yarn
+- MongoDB (optional, for link history)
+- YouTube Data API v3 key (required for playlist extraction)
 
 ### Installation
 
@@ -53,34 +55,36 @@ A modern Django web application for extracting video links and metadata from You
    cd YouTube-Playlist-videos-link-Extractor
    ```
 
-2. **Create Virtual Environment** (Recommended)
+2. **Install Dependencies**
    ```bash
-   python -m venv venv
-   
-   # Windows
-   venv\Scripts\activate
-   
-   # macOS/Linux
-   source venv/bin/activate
+   npm install
    ```
 
-3. **Install Dependencies**
+3. **Set Up Environment Variables**
    ```bash
-   pip install -r requirements.txt
+   cp .env.example .env.local
+   ```
+   
+   Edit `.env.local` and add your YouTube API key:
+   ```env
+   YOUTUBE_API_KEY=your_youtube_api_key_here
+   MONGODB_URI=mongodb://localhost:27017/youtube-playlist-extractor
    ```
 
-4. **Run Database Migrations**
-   ```bash
-   python manage.py migrate
-   ```
+4. **Get YouTube Data API Key**
+   - Go to [Google Cloud Console](https://console.developers.google.com/)
+   - Create a new project or select an existing one
+   - Enable "YouTube Data API v3"
+   - Create credentials (API key)
+   - Copy the API key to your `.env.local` file
 
 5. **Start Development Server**
    ```bash
-   python manage.py runserver
+   npm run dev
    ```
 
 6. **Access Application**
-   Open your browser and navigate to `http://127.0.0.1:8000/`
+   Open your browser and navigate to `http://localhost:3000`
 
 ## 📖 Usage Guide
 
@@ -125,64 +129,172 @@ A modern Django web application for extracting video links and metadata from You
 
 ```
 YouTube-Playlist-videos-link-Extractor/
-├── linkgen/                    # Main Django app
-│   ├── views.py               # Core business logic and API endpoints
-│   ├── models.py              # Database models
-│   ├── forms.py               # Django forms for URL input
-│   ├── urls.py                # URL routing configuration
-│   └── templates/             # HTML templates
-│       └── linkgen/
-│           └── index.html     # Main application interface
-├── ytlinkEX/                  # Django project configuration
-│   ├── settings.py            # Development settings
-│   ├── settings_production.py # Production-ready settings
-│   ├── urls.py                # Main URL configuration
-│   └── wsgi.py                # WSGI configuration
-├── static/                    # Static files (CSS, JS, images)
-├── requirements.txt           # Python dependencies
-├── manage.py                  # Django management script
-└── README.md                  # Project documentation
+├── app/                           # Next.js app directory
+│   ├── api/                      # API routes
+│   │   ├── extract-playlist/     # Playlist extraction endpoint
+│   │   └── process-video/        # Single video processing endpoint
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Home page
+│   └── globals.css               # Global styles
+├── components/                    # React components
+│   ├── ExtractorForm.tsx         # Main form component
+│   └── VideoList.tsx             # Video list component
+├── lib/                          # Utility libraries
+│   ├── mongodb/                  # MongoDB connection and models
+│   │   ├── connection.ts         # Database connection
+│   │   └── models/
+│   │       └── Link.ts          # Link model
+│   └── youtube/                  # YouTube integration
+│       └── extractor.ts         # Video extraction logic
+├── public/                       # Static assets
+├── .env.local                    # Environment variables (not committed)
+├── .env.example                  # Environment variables template
+├── next.config.ts               # Next.js configuration
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
+└── package.json                 # Dependencies and scripts
 ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
-Create a `.env` file for environment-specific settings:
+The application requires the following environment variables (see `.env.example`):
 
 ```env
-# Django Settings
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+# YouTube Data API v3 Key (Required)
+YOUTUBE_API_KEY=your_youtube_api_key_here
 
-# Database (for production)
-DB_NAME=ytlinkex_prod
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_HOST=localhost
-DB_PORT=5432
+# MongoDB Connection (Optional - for link history)
+MONGODB_URI=mongodb://localhost:27017/youtube-playlist-extractor
+
+# Redis (Optional - for enhanced caching)
+REDIS_URL=redis://localhost:6379
+
+# Next.js Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-### Production Deployment
+### MongoDB Setup (Optional)
+If you want to store link history:
 
-For production deployment, use the included production settings:
-
-```bash
-python manage.py runserver --settings=ytlinkEX.settings_production
-```
-
-Or set environment variable:
-```bash
-export DJANGO_SETTINGS_MODULE=ytlinkEX.settings_production
-```
+1. Install MongoDB locally or use MongoDB Atlas
+2. Update `MONGODB_URI` in `.env.local`
+3. The application will automatically create the database and collections
 
 ## 🧪 API Endpoints
 
-The application provides several AJAX endpoints for real-time functionality:
+The application provides several API endpoints:
 
-- `POST /process-video/<video_id>/` - Process individual video for metadata
-- `POST /check-remaining-videos/` - Check for remaining videos in session
-- `POST /get-paginated-videos/` - Retrieve specific page of videos
+### POST `/api/extract-playlist`
+Extract video IDs from a playlist or single video URL.
+
+**Request Body:**
+```json
+{
+  "link": "https://www.youtube.com/playlist?list=PLxxxxxx"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "type": "playlist",
+  "playlistInfo": {
+    "title": "Playlist Title",
+    "uploader": "Channel Name",
+    "videoCount": 50
+  },
+  "videoIds": ["videoId1", "videoId2", ...],
+  "totalVideos": 50
+}
+```
+
+### POST `/api/process-video`
+Fetch detailed information for a single video.
+
+**Request Body:**
+```json
+{
+  "videoId": "dQw4w9WgXcQ"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "video": {
+    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "title": "Video Title",
+    "thumbnail": "https://...",
+    "duration": 213,
+    "viewCount": 1000000,
+    "uploadDate": "2024-01-01"
+  }
+}
+```
+
+## 📦 Build & Deploy
+
+### Production Build
+```bash
+npm run build
+```
+
+### Start Production Server
+```bash
+npm start
+```
+
+### Deploy to Vercel (Recommended)
+1. Push your code to GitHub
+2. Import your repository to [Vercel](https://vercel.com)
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically
+
+### Deploy to Other Platforms
+The application can be deployed to any platform that supports Node.js:
+- Netlify
+- Railway
+- Render
+- AWS
+- Google Cloud
+- Azure
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Issue**: "No videos found" for valid playlist
+- **Solution**: Make sure your YouTube API key is set correctly and the API is enabled
+
+**Issue**: "Failed to fetch playlist"
+- **Solution**: Check if playlist is public and the URL format is correct
+
+**Issue**: Slow loading for large playlists
+- **Solution**: Use paginated view mode for better performance
+
+**Issue**: Videos showing as "Error loading video"
+- **Solution**: Some videos may be private, deleted, or geo-restricted
+
+**Issue**: MongoDB connection error
+- **Solution**: Ensure MongoDB is running and the connection string is correct. Note that MongoDB is optional.
+
+### Debug Mode
+Check the browser console and server logs for detailed error information.
+
+## 🔄 Migration from Django
+
+This application has been migrated from Django/Python to the MERN stack. Key changes:
+
+- **Backend**: Django views → Next.js API routes
+- **Frontend**: Django templates → React components
+- **Database**: SQLite → MongoDB (optional)
+- **YouTube Library**: yt-dlp → ytdl-core + YouTube Data API
+- **Styling**: Bootstrap 5 → Tailwind CSS
+
+The core functionality remains the same, with improved performance and modern web standards.
 
 ## 🤝 Contributing
 
@@ -205,34 +317,12 @@ Contributions are welcome! Please follow these steps:
 
 ### Development Guidelines
 
-- Follow PEP 8 coding standards
+- Follow TypeScript best practices
+- Use ESLint and Prettier for code formatting
 - Write meaningful commit messages
 - Add comments for complex logic
 - Test thoroughly before submitting
 - Update documentation for new features
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Issue**: "No videos found" for valid playlist
-- **Solution**: Check if playlist is public and the URL format is correct
-
-**Issue**: Slow loading for large playlists
-- **Solution**: Use paginated view mode for better performance
-
-**Issue**: Videos showing as "Error loading video"
-- **Solution**: Some videos may be private, deleted, or geo-restricted
-
-**Issue**: Application not starting
-- **Solution**: Ensure all dependencies are installed and virtual environment is activated
-
-### Debug Mode
-Enable debug mode for detailed error information:
-```python
-# In settings.py
-DEBUG = True
-```
 
 ## 📄 License
 
@@ -240,10 +330,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Reliable YouTube video extraction
-- [Django](https://www.djangoproject.com/) - Web framework
-- [Bootstrap](https://getbootstrap.com/) - UI framework
-- [Bootstrap Icons](https://icons.getbootstrap.com/) - Icon library
+- [Next.js](https://nextjs.org/) - React framework
+- [YouTube Data API](https://developers.google.com/youtube/v3) - Video data extraction
+- [ytdl-core](https://github.com/fent/node-ytdl-core) - YouTube video information
+- [MongoDB](https://www.mongodb.com/) - Database
+- [Tailwind CSS](https://tailwindcss.com/) - Styling framework
 
 ## 📞 Support
 
@@ -255,86 +346,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Made with ❤️ for the YouTube community**
-   - Individual video links
-   - Video titles
-   - Combined title + link data
-   - All links at once
-   - All titles at once
-   - All data combined
-
-## 🛠️ Technical Details
-
-### Modern Stack
-- **Django 5.1.7**: Latest LTS version
-- **yt-dlp 2025.x**: Reliable YouTube data extraction (replaces deprecated pytube)
-- **Bootstrap 5.3**: Modern responsive UI
-- **Concurrent Processing**: ThreadPoolExecutor for parallel video fetching
-
-### Performance Features
-- **Smart Caching**: Redis-compatible caching system
-- **Real-time Loading**: AJAX-powered progressive loading
-- **Error Handling**: Graceful handling of private/deleted videos
-- **Session Management**: Maintains state across page interactions
-
-## 🔧 Configuration
-
-### Pagination Settings
-Default pagination is 10 videos per page. Users can select from the dropdown:
-- 5, 10, 15, 20, 50 videos per page
-- "All videos" option for complete playlists
-
-### Cache Configuration
-Videos are cached for 1 hour by default. Modify in `settings.py`:
-```python
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'TIMEOUT': 3600,  # 1 hour
-    }
-}
-```
-
-## 📦 Dependencies
-
-Core packages (see `requirements.txt` for versions):
-- Django (5.1.7+)
-- yt-dlp (2024.12.13+)
-- django-crispy-forms
-- crispy-bootstrap5
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**Videos not loading**: 
-- Verify the playlist URL contains `list=` parameter
-- Check internet connection
-- Some videos may be private or region-restricted
-
-**Slow performance**: 
-- Use pagination for large playlists (>50 videos)
-- Clear browser cache if needed
-- Check console for JavaScript errors
-
-**Form resubmission dialog**: 
-- Fixed in latest version with proper state management
-- Browser history is automatically managed
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Built with Django and modern web technologies
-- Uses yt-dlp for reliable YouTube data extraction
-- Bootstrap 5 for responsive design
+**Made with ❤️ using the MERN stack**
