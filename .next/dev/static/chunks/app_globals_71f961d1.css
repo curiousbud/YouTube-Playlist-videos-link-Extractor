@@ -364,10 +364,6 @@
     position: relative;
   }
 
-  .static {
-    position: static;
-  }
-
   .right-1 {
     right: calc(var(--spacing) * 1);
   }
@@ -494,11 +490,11 @@
     min-width: calc(var(--spacing) * 0);
   }
 
-  .flex-shrink-0, .shrink-0 {
+  .shrink-0 {
     flex-shrink: 0;
   }
 
-  .flex-grow, .grow {
+  .grow {
     flex-grow: 1;
   }
 
@@ -650,16 +646,6 @@
   }
 
   .bg-linear-to-r {
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
-
-  .bg-gradient-to-br {
-    --tw-gradient-position: to bottom right in oklab;
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
-
-  .bg-gradient-to-r {
-    --tw-gradient-position: to right in oklab;
     background-image: linear-gradient(var(--tw-gradient-stops));
   }
 

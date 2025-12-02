@@ -1,4 +1,16 @@
-import ytdl from 'ytdl-core';
+// Simple in-memory cache for playlist video IDs
+const playlistCache = new Map<string, { data: string[]; timestamp: number }>();
+
+// PlaylistInfo type for playlist metadata
+export interface PlaylistInfo {
+  id?: string;
+  title: string;
+  description?: string;
+  thumbnail?: string;
+  uploader: string;
+  videoCount: number;
+}
+// import ytdl from 'ytdl-core';
 import { google } from 'googleapis';
 import type { youtube_v3 } from 'googleapis/build/src/apis/youtube/v3';
 
@@ -16,46 +28,12 @@ export interface VideoData {
   uploadDate: string;
 }
 
-export interface PlaylistInfo {
-  title: string;
-  uploader: string;
-  videoCount: number;
-}
-
-// Cache for video data
+// Simple in-memory cache for video details
 const videoCache = new Map<string, { data: VideoData; timestamp: number }>();
-const playlistCache = new Map<string, { data: string[]; timestamp: number }>();
-const CACHE_DURATION = 3600000; // 1 hour in milliseconds
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 /**
- * Extract video ID from YouTube URL
- */
-export function extractVideoId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /^([a-zA-Z0-9_-]{11})$/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-
-  return null;
-}
-
-/**
- * Extract playlist ID from YouTube URL
- */
-export function extractPlaylistId(url: string): string | null {
-  const match = url.match(/[?&]list=([^&\n?#]+)/);
-  return match ? match[1] : null;
-}
-
-/**
- * Fetch video details using ytdl-core
+ * Fetch video details using YouTube Data API v3
  */
 export async function fetchVideoDetails(videoId: string): Promise<VideoData> {
   // Check cache first
@@ -64,17 +42,30 @@ export async function fetchVideoDetails(videoId: string): Promise<VideoData> {
     return cached.data;
   }
 
+  // Helper to parse ISO 8601 duration (e.g., PT1H2M10S)
+  function parseISODuration(iso: string): number {
+    const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const [, h, m, s] = match.map(Number);
+    return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+  }
+
   try {
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const info = await ytdl.getInfo(videoUrl);
+    const resp = await youtube.videos.list({
+      part: ['snippet', 'contentDetails', 'statistics'],
+      id: [videoId],
+    });
+    const video = resp.data.items?.[0];
+    if (!video) throw new Error('Video not found');
 
     const videoData: VideoData = {
       url: videoUrl,
-      title: info.videoDetails.title || 'Unknown Title',
-      thumbnail: info.videoDetails.thumbnails?.[0]?.url || '',
-      duration: parseInt(info.videoDetails.lengthSeconds || '0'),
-      viewCount: parseInt(info.videoDetails.viewCount || '0'),
-      uploadDate: info.videoDetails.uploadDate || '',
+      title: video.snippet?.title || 'Unknown Title',
+      thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
+      duration: parseISODuration(video.contentDetails?.duration || ''),
+      viewCount: parseInt(video.statistics?.viewCount || '0'),
+      uploadDate: video.snippet?.publishedAt ? video.snippet.publishedAt.split('T')[0] : '',
     };
 
     // Cache the result
@@ -85,7 +76,6 @@ export async function fetchVideoDetails(videoId: string): Promise<VideoData> {
     // Sanitize videoId for logging (only allow alphanumeric, dash, underscore)
     const sanitizedVideoId = videoId.replace(/[^a-zA-Z0-9_-]/g, '');
     console.error('Error fetching video details for video:', sanitizedVideoId, error);
-    
     return {
       url: `https://www.youtube.com/watch?v=${videoId}`,
       title: 'Error loading video',
