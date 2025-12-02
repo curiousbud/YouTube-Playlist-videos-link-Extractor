@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb/connection';
+import connectDB, { isMongoEnabled } from '@/lib/mongodb/connection';
 import Link from '@/lib/mongodb/models/Link';
 import {
   extractPlaylistId,
@@ -22,12 +22,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
     }
 
-    // Connect to database
-    await connectDB();
 
-    // Save link to database
-    const newLink = new Link({ link });
-    await newLink.save();
+    // Only connect and save if MongoDB is enabled
+    if (isMongoEnabled()) {
+      await connectDB();
+      const newLink = new Link({ link });
+      await newLink.save();
+    }
 
     // Check if it's a playlist or single video
     const isPlaylist = isPlaylistUrl(link);
