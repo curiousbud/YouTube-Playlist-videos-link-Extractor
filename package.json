@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
+    "@vercel/analytics": "^1.6.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "googleapis": "^165.0.0",
