@@ -16,7 +16,7 @@
     "googleapis": "^165.0.0",
     "mongodb": "^7.0.0",
     "mongoose": "^8.9.5",
-    "next": "16.0.10",
+    "next": "16.1.6",
     "play-dl": "^1.9.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
