@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { VideoData } from '@/lib/youtube/extractor';
+import { formatDuration, formatViews } from '@/lib/format';
+import { exportToCsv, exportToExcel, exportToPdf } from '@/lib/export/exporters';
 import Image from 'next/image';
 
 interface VideoListProps {
@@ -11,9 +13,13 @@ interface VideoListProps {
   videosPerPage: number;
 }
 
+type ExportFormat = 'csv' | 'excel' | 'pdf';
+
 export default function VideoList({ videos, totalVideos, viewMode, videosPerPage }: VideoListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<ExportFormat | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Pagination logic
   const totalPages = Math.ceil(videos.length / videosPerPage);
@@ -31,114 +37,114 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
     }
   };
 
-  const copyAllLinks = () => {
-    const allLinks = videos.map((v) => v.url).join('\n');
-    copyToClipboard(allLinks, 'all-links');
-  };
+  const copyAllLinks = () => copyToClipboard(videos.map((v) => v.url).join('\n'), 'all-links');
+  const copyAllTitles = () => copyToClipboard(videos.map((v) => v.title).join('\n'), 'all-titles');
+  const copyAllData = () =>
+    copyToClipboard(videos.map((v, idx) => `${idx + 1}. ${v.title}\n${v.url}`).join('\n\n'), 'all-data');
 
-  const copyAllTitles = () => {
-    const allTitles = videos.map((v) => v.title).join('\n');
-    copyToClipboard(allTitles, 'all-titles');
-  };
-
-  const copyAllData = () => {
-    const allData = videos
-      .map((v, idx) => `${idx + 1}. ${v.title}\n${v.url}`)
-      .join('\n\n');
-    copyToClipboard(allData, 'all-data');
-  };
-
-  const exportToCSV = () => {
-    const headers = ['Number', 'Title', 'URL', 'Duration', 'Views', 'Upload Date'];
-    const rows = videos.map((v, idx) => [
-      idx + 1,
-      v.title,
-      v.url,
-      v.duration,
-      v.viewCount,
-      v.uploadDate,
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'youtube-playlist-videos.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const handleExport = async (format: ExportFormat) => {
+    setMenuOpen(false);
+    setExporting(format);
+    try {
+      if (format === 'csv') exportToCsv(videos);
+      else if (format === 'excel') await exportToExcel(videos);
+      else await exportToPdf(videos);
+    } catch (err) {
+      console.error(`Failed to export as ${format}:`, err);
+      alert(`Sorry, the ${format.toUpperCase()} export failed. Please try again.`);
+    } finally {
+      setExporting(null);
     }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatViews = (views: number): string => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`;
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
-    }
-    return views.toString();
-  };
+  const bulkBtn =
+    'px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors';
+  const copyBtn =
+    'px-3 py-1.5 rounded-md text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors';
+
+  const exportOptions: { format: ExportFormat; label: string; hint: string }[] = [
+    { format: 'csv', label: 'CSV', hint: 'Spreadsheet text' },
+    { format: 'excel', label: 'Excel (.xlsx)', hint: 'With thumbnails' },
+    { format: 'pdf', label: 'PDF', hint: 'With thumbnails' },
+  ];
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
       {/* Bulk Actions */}
-      <div className="flex flex-wrap gap-3 mb-6 pb-4 border-b border-gray-200">
-        <button
-          onClick={copyAllLinks}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
-        >
-          {copiedId === 'all-links' ? '✓ Copied!' : 'Copy All Links'}
+      <div className="flex flex-wrap items-center gap-2.5 mb-5 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <button onClick={copyAllLinks} className={bulkBtn}>
+          {copiedId === 'all-links' ? '✓ Copied' : 'Copy all links'}
         </button>
-        <button
-          onClick={copyAllTitles}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-        >
-          {copiedId === 'all-titles' ? '✓ Copied!' : 'Copy All Titles'}
+        <button onClick={copyAllTitles} className={bulkBtn}>
+          {copiedId === 'all-titles' ? '✓ Copied' : 'Copy all titles'}
         </button>
-        <button
-          onClick={copyAllData}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
-        >
-          {copiedId === 'all-data' ? '✓ Copied!' : 'Copy All Data'}
+        <button onClick={copyAllData} className={bulkBtn}>
+          {copiedId === 'all-data' ? '✓ Copied' : 'Copy all data'}
         </button>
-        <button
-          onClick={exportToCSV}
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg transition-colors text-sm font-medium"
-        >
-          Export to CSV
-        </button>
+
+        {/* Export dropdown */}
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            disabled={exporting !== null}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            {exporting ? `Exporting ${exporting.toUpperCase()}…` : 'Export'}
+            {!exporting && (
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M5.5 7.5L10 12l4.5-4.5" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+
+          {menuOpen && (
+            <>
+              {/* Click-away backdrop */}
+              <button
+                className="fixed inset-0 z-10 cursor-default"
+                aria-hidden="true"
+                tabIndex={-1}
+                onClick={() => setMenuOpen(false)}
+              />
+              <div
+                role="menu"
+                className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden"
+              >
+                {exportOptions.map((opt) => (
+                  <button
+                    key={opt.format}
+                    role="menuitem"
+                    onClick={() => handleExport(opt.format)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">{opt.label}</span>
+                    <span className="block text-xs text-slate-400 dark:text-slate-500">{opt.hint}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Video Count */}
-      <div className="mb-4 text-sm text-gray-600">
+      <div className="mb-4 text-sm text-slate-500 dark:text-slate-400">
         Showing {displayedVideos.length} of {videos.length} videos
         {totalVideos > videos.length && ` (${totalVideos} total)`}
       </div>
 
       {/* Video Items */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {displayedVideos.map((video, idx) => {
           const actualIdx = viewMode === 'paginated' ? startIdx + idx : idx;
           const videoIdForCopy = `video-${actualIdx}`;
-          
+
           return (
             <div
-              key={actualIdx}
-              className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow"
+              key={`${video.url}-${actualIdx}`}
+              className="flex gap-4 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
             >
               {/* Thumbnail */}
               <div className="shrink-0">
@@ -152,12 +158,12 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
                       className="w-40 h-24 object-cover rounded-lg"
                     />
                   ) : (
-                    <div className="w-40 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">No thumbnail</span>
+                    <div className="w-40 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                      <span className="text-slate-400 text-xs">No thumbnail</span>
                     </div>
                   )}
                   {video.duration > 0 && (
-                    <span className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
                       {formatDuration(video.duration)}
                     </span>
                   )}
@@ -166,19 +172,19 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
 
               {/* Video Info */}
               <div className="grow min-w-0">
-                <h3 className="font-semibold text-gray-900 mb-1 truncate">
+                <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1 truncate">
                   {actualIdx + 1}. {video.title}
                 </h3>
                 <a
                   href={video.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline block truncate mb-2"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline block truncate mb-2"
                 >
                   {video.url}
                 </a>
                 {video.viewCount > 0 && (
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-slate-400 dark:text-slate-500">
                     {formatViews(video.viewCount)} views
                   </div>
                 )}
@@ -188,23 +194,21 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
               <div className="shrink-0 flex flex-col gap-2">
                 <button
                   onClick={() => copyToClipboard(video.url, `${videoIdForCopy}-link`)}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"
+                  className={copyBtn}
                   title="Copy video link"
                 >
                   {copiedId === `${videoIdForCopy}-link` ? '✓' : 'Link'}
                 </button>
                 <button
                   onClick={() => copyToClipboard(video.title, `${videoIdForCopy}-title`)}
-                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-medium transition-colors"
+                  className={copyBtn}
                   title="Copy video title"
                 >
                   {copiedId === `${videoIdForCopy}-title` ? '✓' : 'Title'}
                 </button>
                 <button
-                  onClick={() =>
-                    copyToClipboard(`${video.title}\n${video.url}`, `${videoIdForCopy}-both`)
-                  }
-                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium transition-colors"
+                  onClick={() => copyToClipboard(`${video.title}\n${video.url}`, `${videoIdForCopy}-both`)}
+                  className={copyBtn}
                   title="Copy title + link"
                 >
                   {copiedId === `${videoIdForCopy}-both` ? '✓' : 'Both'}
@@ -219,19 +223,19 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
       {viewMode === 'paginated' && totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-2">
           <button
-            onClick={e => { e.preventDefault(); setCurrentPage((p) => Math.max(1, p - 1)); }}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 rounded-lg text-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
-          <span className="px-4 py-2 text-gray-700 dark:text-gray-200">
+          <span className="px-3 text-sm text-slate-500 dark:text-slate-400">
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={e => { e.preventDefault(); setCurrentPage((p) => Math.min(totalPages, p + 1)); }}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-500 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 rounded-lg text-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
