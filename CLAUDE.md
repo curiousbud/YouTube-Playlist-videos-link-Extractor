@@ -82,4 +82,9 @@ MongoDB: `lib/mongodb/connection.ts` exposes a cached `connectDB` (no-op when
   Optimization quota. Don't re-enable optimization without a plan for that quota.
 - **Heavy export libs** (ExcelJS, jsPDF) must stay behind dynamic `import()` calls
   inside the export functions — never import them at module top level.
+- **`package.json` `overrides`** pin `postcss` and `uuid` to patched versions to
+  clear transitive Dependabot advisories (Next bundles old postcss; exceljs pins
+  old uuid). exceljs uses `require('uuid').v4`, which uuid v11 supports — keep
+  these overrides unless the upstream deps ship fixes, and re-run `npm audit`
+  after dependency bumps.
 - Path alias `@/*` maps to the repo root.
