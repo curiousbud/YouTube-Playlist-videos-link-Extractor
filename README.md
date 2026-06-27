@@ -13,7 +13,8 @@ A modern web application for extracting video links and metadata from YouTube pl
 - **Playlist Extraction**: Extract all video URLs, titles, thumbnails, and metadata from YouTube playlists
 - **Single Video Support**: Also works with individual YouTube video URLs
 - **Bulk Operations**: Copy all links, titles, or combined data with one click
-- **CSV Export**: Export playlist data to CSV format for external use
+- **Multi-format Export**: Download results as **CSV**, **Excel (.xlsx)**, or **PDF** —
+  the Excel and PDF exports embed each video's thumbnail image
 
 ### User Experience
 - **Real-time Loading**: Progressive video loading with live progress indicators
@@ -35,7 +36,8 @@ A modern web application for extracting video links and metadata from YouTube pl
 - **Backend**: Next.js API Routes (serverless functions)
 - **Database**: MongoDB (for link history storage)
 - **YouTube Integration**: YouTube Data API v3 + ytdl-core
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v4
+- **Exports**: ExcelJS (.xlsx), jsPDF + jspdf-autotable (PDF)
 - **Language**: TypeScript
 - **Caching**: In-memory caching with Redis support
 
@@ -109,7 +111,13 @@ A modern web application for extracting video links and metadata from YouTube pl
 4. **Export and Copy Options**
    - **Individual Actions**: Copy video link, title, or both for each video
    - **Bulk Actions**: Copy all links, all titles, or all data at once
-   - **CSV Export**: Download complete playlist data as CSV file
+   - **Export menu**: Download the full result set in any of three formats:
+     - **CSV** — plain spreadsheet text (RFC 4180, UTF-8 BOM for Excel compatibility)
+     - **Excel (.xlsx)** — a worksheet with an embedded thumbnail per row
+     - **PDF** — a printable table with an embedded thumbnail per row
+
+   > Thumbnails are fetched through a same-origin image proxy (`/api/image-proxy`,
+   > restricted to YouTube's CDN) so they embed reliably without cross-origin issues.
 
 ### Advanced Features
 
@@ -131,15 +139,23 @@ A modern web application for extracting video links and metadata from YouTube pl
 YouTube-Playlist-videos-link-Extractor/
 ├── app/                           # Next.js app directory
 │   ├── api/                      # API routes
-│   │   ├── extract-playlist/     # Playlist extraction endpoint
-│   │   └── process-video/        # Single video processing endpoint
-│   ├── layout.tsx                # Root layout
+│   │   ├── extract-playlist/     # Playlist/video ID extraction endpoint
+│   │   ├── process-video/        # Single video processing endpoint
+│   │   ├── process-videos/       # Batch video processing (up to 50 IDs/call)
+│   │   └── image-proxy/          # Same-origin thumbnail proxy (for exports)
+│   ├── layout.tsx                # Root layout (+ anti-FOUC theme script)
+│   ├── theme.tsx                 # Dark/light theme switcher
 │   ├── page.tsx                  # Home page
-│   └── globals.css               # Global styles
+│   └── globals.css               # Global styles + theme tokens
 ├── components/                    # React components
 │   ├── ExtractorForm.tsx         # Main form component
-│   └── VideoList.tsx             # Video list component
+│   ├── VideoList.tsx             # Video list + export menu
+│   ├── Header.tsx / Footer.tsx   # Layout chrome
+│   └── SocialIcons.tsx           # Inline SVG icons
 ├── lib/                          # Utility libraries
+│   ├── format.ts                 # Duration / view-count formatters
+│   ├── export/
+│   │   └── exporters.ts          # CSV / Excel / PDF export logic
 │   ├── mongodb/                  # MongoDB connection and models
 │   │   ├── connection.ts         # Database connection
 │   │   └── models/
@@ -210,6 +226,29 @@ Extract video IDs from a playlist or single video URL.
 }
 ```
 
+### POST `/api/process-videos`
+Fetch details for up to 50 videos in a single request. This is the endpoint the
+UI uses — `videos.list` accepts up to 50 IDs per call (1 quota unit), so a
+50-video playlist costs one API call instead of fifty.
+
+**Request Body:**
+```json
+{ "videoIds": ["dQw4w9WgXcQ", "..."] }
+```
+
+**Response:**
+```json
+{ "success": true, "videos": [ { "url": "...", "title": "...", "thumbnail": "...", "duration": 213, "viewCount": 1000000, "uploadDate": "2024-01-01" } ] }
+```
+Results are returned in the same order as the input IDs, with a placeholder for
+any private/deleted video the API omits.
+
+### GET `/api/image-proxy?url=<thumbnail-url>`
+Streams a YouTube thumbnail through the same origin so it can be embedded in the
+Excel/PDF exports without cross-origin restrictions. The `url` host is restricted
+to YouTube's CDN (`i.ytimg.com`, `img.youtube.com`, `i9.ytimg.com`) to prevent
+the route from being used as an open proxy.
+
 ### POST `/api/process-video`
 Fetch detailed information for a single video.
 
@@ -252,6 +291,11 @@ npm start
 2. Import your repository to [Vercel](https://vercel.com)
 3. Add environment variables in Vercel dashboard
 4. Deploy automatically
+
+> **Note on images:** Next.js Image Optimization is disabled
+> (`images.unoptimized: true` in `next.config.ts`). YouTube thumbnails are served
+> directly from the CDN, so the app does **not** consume Vercel's metered Image
+> Optimization quota — thumbnails keep working in production even on the free tier.
 
 ### Deploy to Other Platforms
 The application can be deployed to any platform that supports Node.js:

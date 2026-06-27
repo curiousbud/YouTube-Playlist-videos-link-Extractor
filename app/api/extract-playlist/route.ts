@@ -23,11 +23,16 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Only connect and save if MongoDB is enabled
+    // Persist the submitted link as history when MongoDB is configured.
+    // This is a best-effort side effect: if the database is unreachable it must
+    // never break extraction, so failures are logged and swallowed.
     if (isMongoEnabled()) {
-      await connectDB();
-      const newLink = new Link({ link });
-      await newLink.save();
+      try {
+        await connectDB();
+        await new Link({ link }).save();
+      } catch (dbError) {
+        console.error('Skipping link history (MongoDB unavailable):', dbError instanceof Error ? dbError.message : dbError);
+      }
     }
 
     // Check if it's a playlist or single video

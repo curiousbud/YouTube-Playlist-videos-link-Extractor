@@ -41,7 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Old Django/Python files (keeping for reference, can be removed later)
+# Old Django/Python files (file patterns only — directory rules like `lib/`,
+# `bin/`, `include/`, `share/` were removed because they collide with this
+# project's TypeScript source directories)
 *.pyc
 __pycache__/
 *.py[cod]
@@ -56,22 +58,11 @@ db.sqlite3-journal
 venv/
 ENV/
 env/
-lib/
-bin/
 pyvenv.cfg
-include/
-share/
-
-<<<<<<< HEAD
-# Environment variables
-.env
-.env.local
-.env.prod
 
 # Development documentation (keep local only)
 DEPLOYMENT_STATUS.md
 SECURITY_SETUP.md
-DEPLOYMENT.md
 DEPLOYMENT_CHECKLIST.md
 UPGRADE_SUMMARY.md
 logs/
@@ -85,7 +76,6 @@ logs/
 *~
 
 # OS
-.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
@@ -93,22 +83,13 @@ logs/
 ehthumbs.db
 Thumbs.db
 
-# Logs
-logs/
-*.log
-
 # Cache
 .cache/
-*.pyc
 
 # Testing
 .coverage
 .pytest_cache/
 htmlcov/
-
-# Production files (don't commit these)
-collected_static/
-gunicorn.pid
 
 # Backup files
 *.bak
@@ -117,6 +98,3 @@ gunicorn.pid
 # Temporary files
 *.tmp
 *.temp
-node_modules
-=======
->>>>>>> pr-1

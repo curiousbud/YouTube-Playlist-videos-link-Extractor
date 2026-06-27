@@ -41,6 +41,8 @@ if (!MONGODB_URI) {
     if (!cached.promise) {
       const opts = {
         bufferCommands: false,
+        // Fail fast when the server is unreachable instead of hanging ~30s.
+        serverSelectionTimeoutMS: 5000,
       };
       cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
         return mongoose;

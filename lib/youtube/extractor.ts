@@ -45,59 +45,101 @@ export interface VideoData {
 const videoCache = new Map<string, { data: VideoData; timestamp: number }>();
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
+// Max IDs the YouTube Data API accepts per videos.list call (1 quota unit each).
+const VIDEO_BATCH_SIZE = 50;
+
+// Parse an ISO 8601 duration (e.g., PT1H2M10S) into total seconds.
+function parseISODuration(iso: string): number {
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  const [, h, m, s] = match.map((v) => Number(v) || 0);
+  return h * 3600 + m * 60 + s;
+}
+
+// Map a raw YouTube videos.list item into our VideoData shape.
+function toVideoData(video: youtube_v3.Schema$Video): VideoData {
+  const id = video.id || '';
+  return {
+    url: `https://www.youtube.com/watch?v=${id}`,
+    title: video.snippet?.title || 'Unknown Title',
+    thumbnail:
+      video.snippet?.thumbnails?.high?.url ||
+      video.snippet?.thumbnails?.default?.url ||
+      '',
+    duration: parseISODuration(video.contentDetails?.duration || ''),
+    viewCount: Number(video.statistics?.viewCount || '0'),
+    uploadDate: video.snippet?.publishedAt?.split('T')[0] || '',
+  };
+}
+
+// Placeholder for videos that are private, deleted, or otherwise unavailable.
+function placeholderVideo(videoId: string): VideoData {
+  return {
+    url: `https://www.youtube.com/watch?v=${videoId}`,
+    title: 'Error loading video',
+    thumbnail: '',
+    duration: 0,
+    viewCount: 0,
+    uploadDate: '',
+  };
+}
+
 /**
- * Fetch video details using YouTube Data API v3
+ * Fetch details for many videos at once using YouTube Data API v3.
+ *
+ * Results are returned in the same order as `videoIds`, with a placeholder
+ * inserted for any video the API omits (private/deleted), so callers can rely
+ * on positional alignment with their input.
+ */
+export async function fetchVideoDetailsBatch(videoIds: string[]): Promise<VideoData[]> {
+  if (videoIds.length === 0) return [];
+
+  // Serve cache hits immediately; only request the rest from the API.
+  const now = Date.now();
+  const resolved = new Map<string, VideoData>();
+  const missing: string[] = [];
+
+  for (const id of videoIds) {
+    const cached = videoCache.get(id);
+    if (cached && now - cached.timestamp < CACHE_DURATION) {
+      resolved.set(id, cached.data);
+    } else if (!resolved.has(id) && !missing.includes(id)) {
+      missing.push(id);
+    }
+  }
+
+  if (missing.length > 0 && !process.env.YOUTUBE_API_KEY) {
+    console.error('YouTube API key is not set. Please set YOUTUBE_API_KEY environment variable.');
+  } else {
+    for (let i = 0; i < missing.length; i += VIDEO_BATCH_SIZE) {
+      const chunk = missing.slice(i, i + VIDEO_BATCH_SIZE);
+      try {
+        const resp = await youtube.videos.list({
+          part: ['snippet', 'contentDetails', 'statistics'],
+          id: chunk,
+        });
+        for (const video of resp.data.items || []) {
+          if (!video.id) continue;
+          const data = toVideoData(video);
+          videoCache.set(video.id, { data, timestamp: Date.now() });
+          resolved.set(video.id, data);
+        }
+      } catch (error) {
+        const sanitized = chunk.map((id) => id.replace(/[^a-zA-Z0-9_-]/g, '')).join(',');
+        console.error('Error fetching video details for videos:', sanitized, error);
+      }
+    }
+  }
+
+  return videoIds.map((id) => resolved.get(id) || placeholderVideo(id));
+}
+
+/**
+ * Fetch video details for a single video using YouTube Data API v3.
  */
 export async function fetchVideoDetails(videoId: string): Promise<VideoData> {
-  // Check cache first
-  const cached = videoCache.get(videoId);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  // Helper to parse ISO 8601 duration (e.g., PT1H2M10S)
-  function parseISODuration(iso: string): number {
-    const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return 0;
-    const [, h, m, s] = match.map(Number);
-    return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
-  }
-
-  try {
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const resp = await youtube.videos.list({
-      part: ['snippet', 'contentDetails', 'statistics'],
-      id: [videoId],
-    });
-    const video = resp.data.items?.[0];
-    if (!video) throw new Error('Video not found');
-
-    const videoData: VideoData = {
-      url: videoUrl,
-      title: video.snippet?.title || 'Unknown Title',
-      thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
-      duration: parseISODuration(video.contentDetails?.duration || ''),
-      viewCount: parseInt(video.statistics?.viewCount || '0'),
-      uploadDate: video.snippet?.publishedAt ? video.snippet.publishedAt.split('T')[0] : '',
-    };
-
-    // Cache the result
-    videoCache.set(videoId, { data: videoData, timestamp: Date.now() });
-
-    return videoData;
-  } catch (error) {
-    // Sanitize videoId for logging (only allow alphanumeric, dash, underscore)
-    const sanitizedVideoId = videoId.replace(/[^a-zA-Z0-9_-]/g, '');
-    console.error('Error fetching video details for video:', sanitizedVideoId, error);
-    return {
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      title: 'Error loading video',
-      thumbnail: '',
-      duration: 0,
-      viewCount: 0,
-      uploadDate: '',
-    };
-  }
+  const [video] = await fetchVideoDetailsBatch([videoId]);
+  return video;
 }
 
 /**

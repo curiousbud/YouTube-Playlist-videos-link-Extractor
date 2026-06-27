@@ -1,144 +1,60 @@
-
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
-/* Custom Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 8px;
-  border: 2px solid #f8fafc;
-}
-::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 8px;
-}
-::-webkit-scrollbar-corner {
-  background: #f8fafc;
-}
-
-
-
-html.dark ::-webkit-scrollbar-thumb,
-body.dark ::-webkit-scrollbar-thumb,
-main.dark ::-webkit-scrollbar-thumb {
-  background: #23272f !important;
-  border: 2px solid #0a0d13 !important;
-}
-html.dark ::-webkit-scrollbar-track,
-body.dark ::-webkit-scrollbar-track,
-main.dark ::-webkit-scrollbar-track {
-  background: #0a0d13 !important;
-}
-html.dark ::-webkit-scrollbar-corner,
-body.dark ::-webkit-scrollbar-corner,
-main.dark ::-webkit-scrollbar-corner {
-  background: #0a0d13 !important;
-}
-
-/* Firefox */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f8fafc;
-}
-.dark html {
-  scrollbar-color: #23272f #0a0d13;
-}
-
-.text-gray-800 {
-  color: #1f2937 !important;
-}
-.dark .text-gray-800 {
-  color: #f4f4f5 !important;
-}
-.dark main,
-.dark .text-gray-900,
-.dark .text-gray-600 {
-  color: #f4f4f5 !important;
-}
+/* Drive dark mode from the `.dark` class on <html> (toggled in app/theme.tsx)
+   instead of the OS preference, so `dark:` utilities respond to the switcher. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
-  --foreground: #18181b;
-  --primary: #2563eb;
-  --secondary: #64748b;
-  --accent: #22d3ee;
-  --border: #e5e7eb;
-  --input: #f1f5f9;
-  --font-mono: 'JetBrains Mono', monospace;
+  --background: #f8fafc; /* slate-50  */
+  --foreground: #0f172a; /* slate-900 */
+  --primary: #2563eb;    /* blue-600  */
+  --primary-hover: #1d4ed8; /* blue-700 */
 }
-
-
 
 .dark {
-  --background: #0a0d13;
-  --foreground: #f8fafc;
-  --primary: #3b82f6;
-  --secondary: #a1a1aa;
-  --accent: #38bdf8;
-  --border: #23272f;
-  --input: #18181b;
-  --header-footer: #05070b;
-}
-
-.dark header, .dark footer {
-  background: var(--header-footer) !important;
-  color: var(--foreground) !important;
+  --background: #0b1120; /* deep slate/navy */
+  --foreground: #e2e8f0; /* slate-200 */
+  --primary: #3b82f6;    /* blue-500 */
+  --primary-hover: #2563eb; /* blue-600 */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-mono), monospace;
-  transition: background 0.2s, color 0.2s;
+  font-family: var(--font-mono, 'JetBrains Mono'), monospace;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-input, select, textarea, button {
-  font-family: var(--font-mono), monospace;
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
 }
 
-header, .bg-white {
-  background: var(--background) !important;
-  color: var(--foreground) !important;
+/* Custom scrollbar — premium slate tones, matched to each theme. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 8px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--background);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155; /* slate-700 */
 }
 
-.shadow-md {
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 var(--background);
 }
-
-.dark .bg-white {
-  background: #23272f !important;
-  color: #f4f4f5 !important;
-}
-
-.dark .shadow-md {
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.24);
-}
-
-.bg-blue-600 {
-  background: var(--primary) !important;
-}
-.hover\:bg-blue-700:hover {
-  background: #1d4ed8 !important;
-}
-.text-blue-600 {
-  color: var(--primary) !important;
-}
-.text-gray-900 {
-  color: var(--foreground) !important;
-}
-.text-gray-600 {
-  color: var(--secondary) !important;
-}
-.border-gray-300 {
-  border-color: var(--border) !important;
-}
-.bg-gray-100 {
-  background: var(--input) !important;
-}
-.dark .bg-gray-100 {
-  background: #23272f !important;
+.dark html {
+  scrollbar-color: #334155 var(--background);
 }

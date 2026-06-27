@@ -4,9 +4,9 @@ import { LinkedInIcon, GitHubIcon } from './SocialIcons';
 
 export default function Header() {
   return (
-    <header className="w-full flex flex-col sm:flex-row items-center justify-between px-2 sm:px-6 py-3 sm:py-4 bg-white shadow-md gap-2 sm:gap-0">
+    <header className="w-full flex flex-col sm:flex-row items-center justify-between px-3 sm:px-6 py-3 sm:py-4 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 gap-2 sm:gap-0">
       {/* Left: Name */}
-      <div className="text-lg sm:text-xl font-bold text-gray-900">Areeb Khan</div>
+      <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">Areeb Khan</div>
       {/* Center: Repo Link Button */}
       <a
         href="https://github.com/curiousbud/YouTube-Playlist-videos-link-Extractor"
