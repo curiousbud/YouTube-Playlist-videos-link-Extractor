@@ -243,11 +243,13 @@ UI uses — `videos.list` accepts up to 50 IDs per call (1 quota unit), so a
 Results are returned in the same order as the input IDs, with a placeholder for
 any private/deleted video the API omits.
 
-### GET `/api/image-proxy?url=<thumbnail-url>`
+### GET `/api/image-proxy?id=<videoId>&quality=<quality>`
 Streams a YouTube thumbnail through the same origin so it can be embedded in the
-Excel/PDF exports without cross-origin restrictions. The `url` host is restricted
-to YouTube's CDN (`i.ytimg.com`, `img.youtube.com`, `i9.ytimg.com`) to prevent
-the route from being used as an open proxy.
+Excel/PDF exports without cross-origin restrictions. To prevent the route from
+being used as an open proxy (SSRF), it takes **only** a video ID (validated as 11
+URL-safe characters) and an allow-listed quality token (e.g. `hqdefault`); the
+request URL is built entirely from constants server-side — no user-supplied host
+or path is ever fetched.
 
 ### POST `/api/process-video`
 Fetch detailed information for a single video.

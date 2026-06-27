@@ -21,10 +21,15 @@ interface ImageData {
 
 // Fetch a thumbnail through our same-origin proxy and return it as a data URL,
 // or null if it can't be loaded (so an export never fails on one bad image).
+// The proxy takes a video ID + quality (not a raw URL), so we parse them out of
+// the YouTube thumbnail URL (e.g. https://i.ytimg.com/vi/<id>/<quality>.jpg).
 async function fetchImageData(thumbnailUrl: string): Promise<ImageData | null> {
   if (!thumbnailUrl) return null;
+  const match = thumbnailUrl.match(/\/vi\/([a-zA-Z0-9_-]{11})\/([a-z0-9]+)\.jpg/i);
+  if (!match) return null;
+  const [, id, quality] = match;
   try {
-    const resp = await fetch(`/api/image-proxy?url=${encodeURIComponent(thumbnailUrl)}`);
+    const resp = await fetch(`/api/image-proxy?id=${id}&quality=${encodeURIComponent(quality)}`);
     if (!resp.ok) return null;
     const blob = await resp.blob();
     const dataUrl = await new Promise<string>((resolve, reject) => {

@@ -46,7 +46,8 @@ Exports live in **`lib/export/exporters.ts`** (`exportToCsv` / `exportToExcel` /
 `exportToPdf`). ExcelJS and jsPDF are **dynamically imported** inside the export
 functions so they stay out of the initial bundle. The Excel and PDF exporters
 embed thumbnails, fetched through **`app/api/image-proxy/route.ts`** — a
-same-origin proxy restricted to YouTube's CDN hosts (SSRF guard). Shared
+same-origin proxy that takes a validated video ID + allow-listed quality token
+(never a raw URL) and builds the request URL from constants (SSRF guard). Shared
 display formatters (`formatDuration`, `formatViews`) are in **`lib/format.ts`**.
 
 Core logic lives in **`lib/youtube/extractor.ts`**:
