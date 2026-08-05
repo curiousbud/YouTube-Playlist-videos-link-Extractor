@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // ytdl-core writes player-script caches to the working directory at
+    // runtime; they are minified third-party JS and must never be linted.
+    "**/*-player-script.js",
   ]),
 ]);
 
