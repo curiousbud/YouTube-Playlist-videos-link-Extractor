@@ -86,6 +86,9 @@ Thumbs.db
 # Cache
 .cache/
 
+# ytdl-core runtime cache (player scripts written to the working directory)
+*-player-script.js
+
 # Testing
 .coverage
 .pytest_cache/
