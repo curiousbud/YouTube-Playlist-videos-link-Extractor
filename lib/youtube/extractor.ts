@@ -14,7 +14,7 @@ export interface PlaylistInfo {
   uploader: string;
   videoCount: number;
 }
-// import ytdl from 'ytdl-core';
+
 import { google } from 'googleapis';
 import type { youtube_v3 } from 'googleapis/build/src/apis/youtube/v3';
 

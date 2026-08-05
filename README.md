@@ -196,12 +196,6 @@ YOUTUBE_API_KEY=your_youtube_api_key_here
 # MongoDB Connection (Optional - for link history)
 MONGODB_URI=mongodb://localhost:27017/youtube-playlist-extractor
 
-# Redis (Optional - for enhanced caching)
-REDIS_URL=redis://localhost:6379
-
-# Next.js Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
-
 # Password Protection (Optional - keep the site and API private)
 SITE_PASSWORD=change_me_to_a_strong_password
 

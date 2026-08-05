@@ -32,7 +32,6 @@ Copy `.env.example` to `.env.local`:
   skipped unless `SITE_PASSWORD` is set.
 - `SESSION_SECRET` — optional. HMAC key that signs session cookies; falls back
   to a value derived from `SITE_PASSWORD`.
-- `REDIS_URL`, `NEXT_PUBLIC_API_URL` — optional.
 
 ## Architecture
 
