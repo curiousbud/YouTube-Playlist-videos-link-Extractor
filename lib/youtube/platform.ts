@@ -19,13 +19,30 @@ export type PlatformKey =
 // Groups downloads into per-platform folders, mirroring the original Python
 // script's `sanitize_platform_folder`.
 export function classifyPlatform(url: string): PlatformKey {
-  const lower = url.toLowerCase();
-  if (lower.includes('instagram.com')) return 'instagram';
-  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube';
-  if (lower.includes('tiktok.com')) return 'tiktok';
-  if (lower.includes('facebook.com') || lower.includes('fb.watch')) return 'facebook';
-  if (lower.includes('twitter.com') || lower.includes('x.com')) return 'twitter_x';
-  if (lower.includes('vimeo.com')) return 'vimeo';
+  const matchesHost = (host: string, domain: string): boolean =>
+    host === domain || host.endsWith(`.${domain}`);
+
+  const parseHost = (input: string): string | null => {
+    try {
+      return new URL(input).hostname.toLowerCase().replace(/\.$/, '');
+    } catch {
+      try {
+        return new URL(`https://${input}`).hostname.toLowerCase().replace(/\.$/, '');
+      } catch {
+        return null;
+      }
+    }
+  };
+
+  const host = parseHost(url);
+  if (!host) return 'other';
+
+  if (matchesHost(host, 'instagram.com')) return 'instagram';
+  if (matchesHost(host, 'youtube.com') || matchesHost(host, 'youtu.be')) return 'youtube';
+  if (matchesHost(host, 'tiktok.com')) return 'tiktok';
+  if (matchesHost(host, 'facebook.com') || matchesHost(host, 'fb.watch')) return 'facebook';
+  if (matchesHost(host, 'twitter.com') || matchesHost(host, 'x.com')) return 'twitter_x';
+  if (matchesHost(host, 'vimeo.com')) return 'vimeo';
   return 'other';
 }
 
