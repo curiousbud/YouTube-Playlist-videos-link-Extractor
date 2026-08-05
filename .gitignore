@@ -10,6 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 
+/.yt-dlp
+
 # testing
 /coverage
 
