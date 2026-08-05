@@ -1,6 +1,5 @@
 import React from 'react';
 import ThemeSwitcher from '@/app/theme';
-import LogoutButton from './LogoutButton';
 import { LinkedInIcon, GitHubIcon } from './SocialIcons';
 
 export default function Header() {
@@ -39,7 +38,6 @@ export default function Header() {
         >
           <GitHubIcon size={22} />
         </a>
-        <LogoutButton />
         <ThemeSwitcher />
       </div>
     </header>

@@ -25,13 +25,6 @@ Copy `.env.example` to `.env.local`:
 
 - `YOUTUBE_API_KEY` — **required** for playlist/video metadata (YouTube Data API v3).
 - `MONGODB_URI` — optional. When unset, all DB code is a no-op (see `isMongoEnabled`).
-- `SITE_PASSWORD` — optional. When set, gates the whole site + all API routes
-  behind a login (see `proxy.ts` / `lib/auth.ts`). The proxy fail-closes in
-  production: if the password is unset, the site is locked (pages redirect to
-  /login and /api/login reports the misconfiguration). In local dev the gate is
-  skipped unless `SITE_PASSWORD` is set.
-- `SESSION_SECRET` — optional. HMAC key that signs session cookies; falls back
-  to a value derived from `SITE_PASSWORD`.
 
 ## Architecture
 
@@ -52,12 +45,11 @@ Request flow:
    runtime only; works on Node hosts, not on Vercel free/hobby's ~4.5 MB
    response cap.
 
-Access gate: **`proxy.ts`** (Next 16 proxy, successor to `middleware`) runs on
-every request except static assets. When `SITE_PASSWORD` is set, page requests
-without a valid session cookie redirect to `/login` and `/api/*` requests get a
-401. `lib/auth.ts` signs the httpOnly session cookie with HMAC-SHA256
-(`SESSION_SECRET`, or a value derived from the password) and verifies it in
-constant time; `app/api/login` and `app/api/logout` manage the cookie.
+API guard: **`proxy.ts`** (Next 16 proxy, successor to `middleware`) matches
+only `/api/*`. Pages stay public; API requests must carry a browser `Origin` or
+`Referer` matching the request hostname (i.e. come from this site itself) or
+they get a `403`. This blocks cross-site scripts and direct tooling while
+keeping the site usable by everyone.
 
 Exports live in **`lib/export/exporters.ts`** (`exportToCsv` / `exportToExcel` /
 `exportToPdf`). ExcelJS and jsPDF are **dynamically imported** inside the export

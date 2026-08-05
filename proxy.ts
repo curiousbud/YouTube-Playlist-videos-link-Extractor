@@ -1,53 +1,54 @@
-// Site-wide access gate for the password-protected deployment.
+// API origin guard.
 //
-// This is the Next.js 16 "proxy" file (the successor to `middleware`). It runs
-// before every matched request and blocks anyone without a valid session
-// cookie: page requests are redirected to /login, API requests get a 401.
-// Browser requests to the app include the session cookie automatically, so no
-// existing client code needs to change.
+// Pages remain completely public.  Every request to `/api/*` is checked: the
+// browser's `Origin` (for fetch / XHR) or `Referer` (for navigations such as
+// the download anchor) must point at the same hostname the request was made to.
+// This blocks cross-site scripts and tools (curl, Postman, other projects)
+// while keeping the site itself usable by anyone.
+//
+// Requests without both headers (e.g. server-to-server) are blocked too.
+// Local development on `localhost` works because the browser still sends the
+// matching Origin/Referer.
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE, verifySessionToken } from '@/lib/auth';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Local-dev convenience: without SITE_PASSWORD the gate stays off so
-  // `npm run dev` works out of the box. Set SITE_PASSWORD locally to test the
-  // login flow, and set it in production to lock the site down (fail-closed:
-  // a production build with no password is locked until one is configured).
-  if (process.env.NODE_ENV !== 'production' && !process.env.SITE_PASSWORD) {
+  // Pages are always public — only /api/* routes are guarded.
+  if (!pathname.startsWith('/api/')) {
     return NextResponse.next();
   }
 
-  const sessionValid = await verifySessionToken(request.cookies.get(AUTH_COOKIE)?.value);
+  const targetHost = request.nextUrl.hostname;
 
-  // The login page and the login/logout endpoints must stay reachable without
-  // a session; an already-authenticated user visiting /login is sent home.
-  const isLoginPage = pathname === '/login';
-  const isAuthApi = pathname === '/api/login' || pathname === '/api/logout';
-
-  if (isLoginPage || isAuthApi) {
-    if (sessionValid && isLoginPage) {
-      return NextResponse.redirect(new URL('/', request.url));
+  // The browser sends `Origin` for fetch/XHR and `Referer` for navigations
+  // (e.g. clicking a download link). Either matching the target hostname
+  // proves the request came from this site itself.
+  const origin = request.headers.get('origin');
+  if (origin) {
+    try {
+      if (new URL(origin).hostname === targetHost) return NextResponse.next();
+    } catch {
+      // Malformed Origin — fall through to block.
     }
-    return NextResponse.next();
   }
 
-  if (sessionValid) {
-    return NextResponse.next();
+  const referer = request.headers.get('referer');
+  if (referer) {
+    try {
+      if (new URL(referer).hostname === targetHost) return NextResponse.next();
+    } catch {
+      // Malformed Referer — fall through to block.
+    }
   }
 
-  // Unauthenticated. Return JSON for API calls (a page redirect would confuse
-  // fetch callers) and redirect everything else to the login screen.
-  if (pathname.startsWith('/api/')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  return NextResponse.redirect(new URL('/login', request.url));
+  return NextResponse.json(
+    { error: 'API access is restricted to the site itself.' },
+    { status: 403 }
+  );
 }
 
+// Match only /api/* — static assets and pages skip the guard entirely.
 export const config = {
-  // Run the gate on everything except Next.js internals and static files
-  // (JS/CSS bundles, favicon, public images/fonts). Without this the login
-  // page's own assets would be blocked.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)'],
+  matcher: ['/api/:path*'],
 };
