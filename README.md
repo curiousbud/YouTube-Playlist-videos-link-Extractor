@@ -201,7 +201,18 @@ REDIS_URL=redis://localhost:6379
 
 # Next.js Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# Password Protection (Optional - keep the site and API private)
+SITE_PASSWORD=change_me_to_a_strong_password
+
+# Session cookie signing secret (Optional - random string, e.g. openssl rand -base64 32)
+SESSION_SECRET=
 ```
+
+> **Private deployments:** when `SITE_PASSWORD` is set, the entire site and every
+> `/api/*` route require a signed session cookie (see
+> [Protecting your deployment](#protecting-your-deployment)). Set it if you want
+> only yourself to be able to use the app.
 
 ### MongoDB Setup (Optional)
 If you want to store link history:
@@ -209,6 +220,21 @@ If you want to store link history:
 1. Install MongoDB locally or use MongoDB Atlas
 2. Update `MONGODB_URI` in `.env.local`
 3. The application will automatically create the database and collections
+
+## 🔒 Protecting your deployment
+
+To make sure **only you** can use the site and its API, set `SITE_PASSWORD` in
+your host's environment variables (plus `SESSION_SECRET`, ideally a random value
+from `openssl rand -base64 32`). When `SITE_PASSWORD` is set:
+
+- Every page except `/login` requires a valid signed session cookie; visitors
+  without one are redirected to `/login`.
+- Every `/api/*` route returns **401 Unauthorized** without a session cookie.
+- Logging in with the correct password issues an httpOnly session cookie
+  (HMAC-signed, 30-day expiry). Logout is available from the header.
+
+Cookies are sent automatically on same-origin requests, so the existing client
+code needs no changes. Do not share the password publicly.
 
 ## 🧪 API Endpoints
 
