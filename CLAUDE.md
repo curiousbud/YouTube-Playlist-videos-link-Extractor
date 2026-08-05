@@ -25,7 +25,6 @@ Copy `.env.example` to `.env.local`:
 
 - `YOUTUBE_API_KEY` — **required** for playlist/video metadata (YouTube Data API v3).
 - `MONGODB_URI` — optional. When unset, all DB code is a no-op (see `isMongoEnabled`).
-- `REDIS_URL`, `NEXT_PUBLIC_API_URL` — optional.
 
 ## Architecture
 
@@ -41,6 +40,16 @@ Request flow:
    request to one YouTube API call.
 4. **`components/VideoList.tsx`** (client) — renders results with pagination /
    stream view, per-item and bulk copy actions, and a CSV / Excel / PDF export menu.
+5. **`app/api/download-video/route.ts`** — streams a single video as an MP4
+   attachment via `@distube/ytdl-core` (see `lib/youtube/download.ts`). Node
+   runtime only; works on Node hosts, not on Vercel free/hobby's ~4.5 MB
+   response cap.
+
+API guard: **`proxy.ts`** (Next 16 proxy, successor to `middleware`) matches
+only `/api/*`. Pages stay public; API requests must carry a browser `Origin` or
+`Referer` matching the request hostname (i.e. come from this site itself) or
+they get a `403`. This blocks cross-site scripts and direct tooling while
+keeping the site usable by everyone.
 
 Exports live in **`lib/export/exporters.ts`** (`exportToCsv` / `exportToExcel` /
 `exportToPdf`). ExcelJS and jsPDF are **dynamically imported** inside the export
@@ -50,15 +59,26 @@ same-origin proxy that takes a validated video ID + allow-listed quality token
 (never a raw URL) and builds the request URL from constants (SSRF guard). Shared
 display formatters (`formatDuration`, `formatViews`) are in **`lib/format.ts`**.
 
-Core logic lives in **`lib/youtube/extractor.ts`**:
-- `extractPlaylistId` / `extractVideoId` / `isPlaylistUrl` / `isValidYouTubeUrl` — URL parsing.
-- `fetchPlaylistInfo` / `fetchPlaylistVideos` — playlist metadata + paginated ID listing.
-- `fetchVideoDetails` / `fetchVideoDetailsBatch` — video metadata; **batch is preferred**
-  (the YouTube `videos.list` endpoint accepts up to 50 IDs for 1 quota unit).
+Core logic lives in **`lib/youtube/`**:
+- `url.ts` (pure, client-safe) — `extractPlaylistId` / `extractVideoId` / `isPlaylistUrl`
+  / `isValidYouTubeUrl`. Re-exported from `extractor.ts`; client components must
+  import URL helpers from `url.ts`, never `extractor.ts` (which pulls in the
+  Node-only `googleapis` and breaks the client bundle).
+- `extractor.ts` — `fetchPlaylistInfo` / `fetchPlaylistVideos` (playlist metadata
+  + paginated ID listing), `fetchVideoDetails` / `fetchVideoDetailsBatch` (video
+  metadata; **batch is preferred** — the `videos.list` endpoint accepts up to 50
+  IDs for 1 quota unit).
 
 In-memory `Map` caches (`videoCache`, `playlistCache`, TTL = `CACHE_DURATION`,
 1 hour) sit in `extractor.ts`. They reset on cold start — fine for a single
 serverless instance, not shared across instances.
+
+Downloads: `lib/youtube/download.ts` exposes `getVideoDownload(videoId)`, which
+resolves the highest-quality **progressive** MP4 (video + audio in one file;
+DASH formats are excluded because merging them needs ffmpeg) and returns a Node
+`Readable` + safe filename. The route converts it with `Readable.toWeb` and
+streams it back. Downloading consumes no YouTube Data API quota (ytdl-core
+scrapes the watch page), but may 403 on age-restricted/bot-checked videos.
 
 MongoDB: `lib/mongodb/connection.ts` exposes a cached `connectDB` (no-op when
 `MONGODB_URI` is unset) and `isMongoEnabled`. The only model is

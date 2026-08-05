@@ -14,8 +14,8 @@ The YouTube Playlist Video Extractor has been completely rewritten using modern 
 | **Frontend** | Django Templates + Bootstrap 5 | React 18 + Tailwind CSS |
 | **Language** | Python 3.8+ | TypeScript |
 | **Database** | SQLite / PostgreSQL | MongoDB (optional) |
-| **YouTube Library** | yt-dlp | ytdl-core + YouTube Data API v3 |
-| **Caching** | Django Cache Framework | In-memory + Redis (optional) |
+| **YouTube Library** | yt-dlp | @distube/ytdl-core (downloads) + YouTube Data API v3 |
+| **Caching** | Django Cache Framework | In-memory (1-hour TTL) |
 | **Deployment** | Render, Heroku | Vercel, Netlify, Any Node.js host |
 
 ## Key Changes
@@ -140,7 +140,6 @@ New environment variables:
 ```env
 YOUTUBE_API_KEY=required_for_playlists
 MONGODB_URI=optional_for_link_history
-REDIS_URL=optional_for_enhanced_caching
 ```
 
 ## Deployment Changes
