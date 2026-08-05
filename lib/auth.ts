@@ -39,7 +39,10 @@ function base64UrlEncode(bytes: Uint8Array): string {
 
 function base64UrlDecode(value: string): Uint8Array<ArrayBuffer> {
   const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
-  const bin = atob(b64);
+  // base64UrlEncode strips trailing '=' padding; atob() requires lengths
+  // divisible by 4, so restore it before decoding.
+  const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+  const bin = atob(padded);
   // Back the view with an explicit ArrayBuffer so the returned type satisfies
   // `BufferSource` (the TS 5.7+ generic Uint8Array otherwise infers
   // `ArrayBufferLike`, which crypto.subtle.verify rejects).

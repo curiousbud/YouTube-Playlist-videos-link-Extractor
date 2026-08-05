@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { VideoData } from '@/lib/youtube/extractor';
+import type { VideoData } from '@/lib/youtube/extractor';
 import { extractVideoId } from '@/lib/youtube/url';
 import { formatDuration, formatViews } from '@/lib/format';
 import { exportToCsv, exportToExcel, exportToPdf } from '@/lib/export/exporters';
