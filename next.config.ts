@@ -3,6 +3,9 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // exceljs and archiver do dynamic requires at runtime; keep them external so
+  // the server bundler does not try to inline their CJS internals.
+  serverExternalPackages: ['exceljs', 'archiver'],
   // Allow accessing the dev server over the local network (e.g. via LAN IP)
   // without Next.js blocking cross-origin HMR/font requests.
   allowedDevOrigins: ['169.254.171.105'],

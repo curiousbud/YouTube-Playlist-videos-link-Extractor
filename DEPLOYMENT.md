@@ -190,7 +190,7 @@ sudo certbot --nginx -d your-domain.com
 ### Create Dockerfile
 
 ```dockerfile
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -208,6 +208,11 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# ffmpeg is needed for some yt-dlp formats (bestvideo+bestaudio merges)
+RUN apk add --no-cache ffmpeg
+# Pre-download the yt-dlp binary so the first download request is fast
+RUN npm run setup:ytdlp
+
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -223,6 +228,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# The pre-downloaded yt-dlp binary follows the app into the image
+COPY --from=builder --chown=nextjs:nodejs /app/.yt-dlp ./.yt-dlp
 
 USER nextjs
 
@@ -274,6 +281,144 @@ docker-compose up -d
 # View logs
 docker-compose logs -f
 ```
+
+## Bulk Downloads (yt-dlp Download Backend)
+
+The app can download actual video files two ways:
+
+1. **Single downloads** — from the homepage ("Download a video from any site") and
+   from the playlist results list.
+2. **Bulk downloads** — on the `/bulk` page: upload an Excel file of video links
+   and receive a ZIP of the downloaded videos plus a `download_report.txt`.
+
+Both run through **yt-dlp**, the same tool the original Python script used, so
+they support **YouTube, Instagram, TikTok, Facebook, Twitter/X, Vimeo and
+hundreds of other sites** — not just YouTube.
+
+### Where downloads work
+
+| Feature                        | Vercel (free/hobby) | Vercel (Pro) | Node host / Docker |
+| ------------------------------ | ------------------- | ------------ | ------------------ |
+| Playlist extraction + exports  | ✅                  | ✅           | ✅                 |
+| Single video downloads         | ❌ (4.5 MB cap)     | ⚠️ small only| ✅                 |
+| Bulk Excel downloads (ZIP)     | ❌                  | ❌           | ✅                 |
+
+Downloads spawn the yt-dlp binary, write to a temp folder, and stream large
+bodies — all of which require a **Node.js host with a writable filesystem and
+outbound network access**. Vercel's serverless functions run in a read-only
+sandbox with small response caps, so the download features are designed for
+self-hosted servers, Render, Railway, Fly.io, a VPS, or Docker.
+
+### How the yt-dlp binary is handled
+
+The binary is **not committed** to the repository. On a Node host it is
+downloaded automatically on the first download request, or pre-downloaded at
+deploy time:
+
+```bash
+npm run setup:ytdlp        # downloads the latest yt-dlp binary into ./.yt-dlp/
+```
+
+You can also point the app at your own copy (for example a system package):
+
+```bash
+# apt install yt-dlp  →  export YTDLP_BINARY=/usr/bin/yt-dlp
+```
+
+### Self-hosted deployment (VPS / dedicated server)
+
+```bash
+# 1. Get the code and install dependencies
+git clone https://github.com/curiousbud/YouTube-Playlist-videos-link-Extractor.git
+cd YouTube-Playlist-videos-link-Extractor
+npm ci
+
+# 2. Configure
+cp .env.example .env.local        # set YOUTUBE_API_KEY (and MONGODB_URI if used)
+
+# 3. Pre-download the yt-dlp binary (needs network access to GitHub)
+npm run setup:ytdlp
+
+# 4. Build and run
+npm run build
+npm start                         # Next.js on http://localhost:3000
+```
+
+Recommended for production:
+
+```bash
+# Process manager — keeps the server alive and restarts it on failure
+npm i -g pm2
+pm2 start "npm start" --name youtube-extractor
+pm2 save && pm2 startup
+
+# Optional: serve via Nginx/Caddy as a reverse proxy with HTTPS
+```
+
+Requirements:
+
+- **Node.js 20.6+** (Next.js 16 requirement)
+- **Outbound network access** to GitHub (one-time binary download) and to the
+  video sites themselves
+- **ffmpeg** (optional) — only needed if you select a format that requires a
+  video+audio merge, e.g. `bestvideo+bestaudio` in the Quality field
+- A writable temp directory (any Node host has one)
+
+### Deploy on Render / Railway / Fly.io
+
+Render (Web Service) / Railway both run Node long-lived processes, so they work
+out of the box:
+
+1. Connect the GitHub repository.
+2. Build command: `npm ci && npm run setup:ytdlp && npm run build`
+3. Start command: `npm start`
+4. Environment variables: `YOUTUBE_API_KEY` (and `MONGODB_URI` if used).
+5. Ensure the service has a **persistent disk** if you want the pre-downloaded
+   binary to survive restarts; otherwise it re-downloads on first use (adds a
+   few seconds to the first download).
+
+### Docker
+
+The Dockerfile in the [Docker Deployment](#docker-deployment) section already
+installs ffmpeg and pre-downloads the yt-dlp binary at build time, so `npm run
+setup:ytdlp` does not need to run at container start.
+
+### Cookies for private / age-gated content
+
+Some videos (age-restricted YouTube, private Instagram posts) require a login.
+yt-dlp accepts a **Netscape-format cookies.txt**:
+
+1. Install a browser extension such as "Get cookies.txt LOCALLY" (or export
+   cookies manually in that format).
+2. Export the cookies for the site while logged in.
+3. On the `/bulk` page, upload the file in the "Cookies file" field. It is sent
+   to the server with that single request only and is never stored.
+
+### Platform support
+
+yt-dlp ships extractors for **over 1000 sites** — see the [yt-dlp supported
+sites list](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md).
+Sites that require login (many Instagram/Twitter posts) need the cookies file
+above. The download filenames follow the `{uploader} - {title} [{id}].{ext}`
+pattern and the bulk ZIP sorts videos into per-platform folders.
+
+### Testing your deployment
+
+```bash
+# Quick check that the binary is present
+.yt-dlp/yt-dlp --version          # (or: yt-dlp --version if YTDLP_BINARY is set)
+
+# Metadata check — should return a JSON with a filename
+curl "http://localhost:3000/api/download-url/validate?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+  -H "Origin: http://localhost:3000"
+
+# Streaming check — should return 200 with content-type video/mp4
+curl -D - -o /dev/null "http://localhost:3000/api/download-url?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+  -H "Origin: http://localhost:3000"
+```
+
+> The `Origin` header is required because `/api/*` routes are protected by an
+> origin guard — browsers send it automatically, curl needs it manually.
 
 ## Environment Variables
 
