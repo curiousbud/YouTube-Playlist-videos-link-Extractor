@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import VideoList from './VideoList';
-import { VideoData } from '@/lib/youtube/extractor';
+import type { VideoData } from '@/lib/youtube/extractor';
 
 interface PlaylistInfo {
   title: string;

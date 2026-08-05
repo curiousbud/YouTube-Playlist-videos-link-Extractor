@@ -12,6 +12,7 @@ A modern web application for extracting video links and metadata from YouTube pl
 ### Core Functionality
 - **Playlist Extraction**: Extract all video URLs, titles, thumbnails, and metadata from YouTube playlists
 - **Single Video Support**: Also works with individual YouTube video URLs
+- **Video Download**: Download a single video or the whole result set as MP4
 - **Bulk Operations**: Copy all links, titles, or combined data with one click
 - **Multi-format Export**: Download results as **CSV**, **Excel (.xlsx)**, or **PDF** —
   the Excel and PDF exports embed each video's thumbnail image
@@ -133,6 +134,16 @@ A modern web application for extracting video links and metadata from YouTube pl
 - **Copy All Titles**: All video titles (newline separated)
 - **Copy All Data**: Formatted list with numbers, titles, and URLs
 
+#### Download Functions
+- **Download (per video)**: Save the video as an MP4 file (highest quality progressive format — video + audio in one file)
+- **Download All**: Sequentially download every video in the current result set
+  (browsers may ask permission for multiple downloads on the first run)
+
+> **Deployment note:** Downloads are streamed through the server, so they work
+> on any Node.js host (self-hosted, Render, Railway, etc.). On Vercel's free or
+> hobby plan function responses are capped (~4.5 MB), so large videos will fail
+> there.
+
 ## 🏗️ Project Structure
 
 ```
@@ -142,6 +153,7 @@ YouTube-Playlist-videos-link-Extractor/
 │   │   ├── extract-playlist/     # Playlist/video ID extraction endpoint
 │   │   ├── process-video/        # Single video processing endpoint
 │   │   ├── process-videos/       # Batch video processing (up to 50 IDs/call)
+│   │   ├── download-video/       # Single video MP4 download (streamed)
 │   │   └── image-proxy/          # Same-origin thumbnail proxy (for exports)
 │   ├── layout.tsx                # Root layout (+ anti-FOUC theme script)
 │   ├── theme.tsx                 # Dark/light theme switcher
@@ -161,7 +173,8 @@ YouTube-Playlist-videos-link-Extractor/
 │   │   └── models/
 │   │       └── Link.ts          # Link model
 │   └── youtube/                  # YouTube integration
-│       └── extractor.ts         # Video extraction logic
+│       ├── extractor.ts         # Video extraction logic
+│       └── download.ts          # Video download streaming logic
 ├── public/                       # Static assets
 ├── .env.local                    # Environment variables (not committed)
 ├── .env.example                  # Environment variables template
@@ -182,12 +195,6 @@ YOUTUBE_API_KEY=your_youtube_api_key_here
 
 # MongoDB Connection (Optional - for link history)
 MONGODB_URI=mongodb://localhost:27017/youtube-playlist-extractor
-
-# Redis (Optional - for enhanced caching)
-REDIS_URL=redis://localhost:6379
-
-# Next.js Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 ### MongoDB Setup (Optional)
@@ -199,7 +206,10 @@ If you want to store link history:
 
 ## 🧪 API Endpoints
 
-The application provides several API endpoints:
+The application provides several API endpoints. Pages are public, but every
+`/api/*` route is guarded by `proxy.ts`: only requests whose browser `Origin` or
+`Referer` matches the site's own hostname are accepted — cross-site scripts,
+curl/Postman, and other projects get a `403`.
 
 ### POST `/api/extract-playlist`
 Extract video IDs from a playlist or single video URL.
@@ -250,6 +260,12 @@ being used as an open proxy (SSRF), it takes **only** a video ID (validated as 1
 URL-safe characters) and an allow-listed quality token (e.g. `hqdefault`); the
 request URL is built entirely from constants server-side — no user-supplied host
 or path is ever fetched.
+
+### GET `/api/download-video?id=<videoId>`
+Streams a single video as an MP4 attachment (highest-quality progressive format
+— video + audio in one file). Runs on the Node.js runtime and consumes no
+YouTube Data API quota (`@distube/ytdl-core` scrapes the watch page). Works best
+on a Node.js host; see the download deployment note above.
 
 ### POST `/api/process-video`
 Fetch detailed information for a single video.

@@ -290,13 +290,6 @@ YOUTUBE_API_KEY=your_youtube_api_key_here
 # Optional - for link history storage
 MONGODB_URI=mongodb://localhost:27017/youtube-playlist-extractor
 
-# Optional - for enhanced caching
-REDIS_URL=redis://localhost:6379
-
-# Optional - API base URL
-NEXT_PUBLIC_API_URL=http://localhost:3000
-```
-
 ## Database Setup
 
 ### MongoDB Atlas (Cloud)
@@ -381,18 +374,7 @@ docker-compose up -d --build
 
 ### Caching
 
-For better performance with high traffic:
-
-1. **Enable Redis Caching**:
-   ```bash
-   # Install Redis
-   sudo apt install redis-server
-   
-   # Add to .env
-   REDIS_URL=redis://localhost:6379
-   ```
-
-2. **Configure CDN** (for static assets):
+For better performance with high traffic, configure a CDN for static assets:
    - Vercel: Automatic CDN
    - Netlify: Automatic CDN
    - Self-hosted: Use Cloudflare
