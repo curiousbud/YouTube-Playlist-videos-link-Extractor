@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { VideoData } from '@/lib/youtube/extractor';
+import { extractVideoId } from '@/lib/youtube/url';
 import { formatDuration, formatViews } from '@/lib/format';
 import { exportToCsv, exportToExcel, exportToPdf } from '@/lib/export/exporters';
 import Image from 'next/image';
@@ -20,6 +21,7 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [downloadAllActive, setDownloadAllActive] = useState(false);
 
   // Pagination logic
   const totalPages = Math.ceil(videos.length / videosPerPage);
@@ -41,6 +43,38 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
   const copyAllTitles = () => copyToClipboard(videos.map((v) => v.title).join('\n'), 'all-titles');
   const copyAllData = () =>
     copyToClipboard(videos.map((v, idx) => `${idx + 1}. ${v.title}\n${v.url}`).join('\n\n'), 'all-data');
+
+  // Kick off a browser download for one video by navigating to the streaming
+  // endpoint with a detached anchor. The route responds with
+  // `Content-Disposition: attachment`, so the page never leaves the SPA while
+  // the file saves to the user's Downloads folder.
+  const triggerDownload = (video: VideoData) => {
+    const videoId = extractVideoId(video.url);
+    if (!videoId) return;
+    const a = document.createElement('a');
+    a.href = `/api/download-video?id=${encodeURIComponent(videoId)}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  // Download the full result set one video at a time. Browsers throttle
+  // programmatic downloads, so each one is spaced out; Chrome/Safari may still
+  // ask the user to allow "multiple downloads" on the first run.
+  const downloadAll = async () => {
+    if (videos.length === 0) return;
+    setDownloadAllActive(true);
+    try {
+      for (let i = 0; i < videos.length; i++) {
+        triggerDownload(videos[i]);
+        if (i < videos.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 750));
+        }
+      }
+    } finally {
+      setDownloadAllActive(false);
+    }
+  };
 
   const handleExport = async (format: ExportFormat) => {
     setMenuOpen(false);
@@ -80,6 +114,14 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
         </button>
         <button onClick={copyAllData} className={bulkBtn}>
           {copiedId === 'all-data' ? '✓ Copied' : 'Copy all data'}
+        </button>
+        <button
+          onClick={downloadAll}
+          disabled={downloadAllActive || videos.length === 0}
+          className="px-3.5 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          title="Download every video in the current result set as MP4"
+        >
+          {downloadAllActive ? 'Downloading all…' : 'Download all'}
         </button>
 
         {/* Export dropdown */}
@@ -192,6 +234,13 @@ export default function VideoList({ videos, totalVideos, viewMode, videosPerPage
 
               {/* Action Buttons */}
               <div className="shrink-0 flex flex-col gap-2">
+                <button
+                  onClick={() => triggerDownload(video)}
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  title="Download video as MP4"
+                >
+                  Download
+                </button>
                 <button
                   onClick={() => copyToClipboard(video.url, `${videoIdForCopy}-link`)}
                   className={copyBtn}
