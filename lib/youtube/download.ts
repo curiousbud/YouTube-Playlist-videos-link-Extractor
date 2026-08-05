@@ -49,16 +49,29 @@ export async function getVideoDownload(videoId: string): Promise<VideoDownload> 
   // videos), so callers should treat it as the fallible boundary.
   const info = await ytdl.getInfo(url);
 
-  // Pick the best progressive format (video + audio in one file) and open a
-  // readable stream of the media bytes.
-  const stream = ytdl.downloadFromInfo(info, {
-    filter: (format) => format.hasVideo && format.hasAudio,
-    quality: 'highest',
-  });
+  // Pick the best progressive format (video + audio in one file). Progressive
+  // formats are not always MP4 — they can be WebM — so the extension and
+  // content type below are derived from whichever format is actually selected.
+  let format: ytdl.videoFormat;
+  try {
+    format = ytdl.chooseFormat(info.formats, {
+      filter: (f) => f.hasVideo && f.hasAudio,
+      quality: 'highest',
+    });
+  } catch {
+    throw new Error('No progressive (video + audio) format is available for this video.');
+  }
+
+  const mimeType = format.mimeType?.split(';')[0] ?? '';
+  const isWebm = mimeType.includes('webm') || format.container === 'webm';
+  const extension = isWebm ? 'webm' : 'mp4';
+  const contentType = mimeType || (isWebm ? 'video/webm' : 'video/mp4');
+
+  const stream = ytdl.downloadFromInfo(info, { format });
 
   return {
     stream,
-    filename: `${sanitizeFilename(info.videoDetails.title)}.mp4`,
-    contentType: 'video/mp4',
+    filename: `${sanitizeFilename(info.videoDetails.title)}.${extension}`,
+    contentType,
   };
 }
