@@ -91,6 +91,9 @@ Thumbs.db
 # ytdl-core runtime cache (player scripts written to the working directory)
 *-player-script.js
 
+# yt-dlp binary (downloaded on first use via `npm run setup:ytdlp`)
+/.yt-dlp/
+
 # Testing
 .coverage
 .pytest_cache/

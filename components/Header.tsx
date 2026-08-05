@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import ThemeSwitcher from '@/app/theme';
 import { LinkedInIcon, GitHubIcon } from './SocialIcons';
 
@@ -7,15 +8,29 @@ export default function Header() {
     <header className="w-full flex flex-col sm:flex-row items-center justify-between px-3 sm:px-6 py-3 sm:py-4 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 gap-2 sm:gap-0">
       {/* Left: Name */}
       <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">Areeb Khan</div>
-      {/* Center: Repo Link Button */}
-      <a
-        href="https://github.com/curiousbud/YouTube-Playlist-videos-link-Extractor"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
-      >
-        Repo
-      </a>
+      {/* Center: App navigation + Repo Link Button */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Link
+          href="/"
+          className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Home
+        </Link>
+        <Link
+          href="/bulk"
+          className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Bulk download
+        </Link>
+        <a
+          href="https://github.com/curiousbud/YouTube-Playlist-videos-link-Extractor"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors text-sm sm:text-base"
+        >
+          Repo
+        </a>
+      </div>
       {/* Right: Social Links + Theme Switcher */}
       <div className="flex gap-2 sm:gap-4 items-center">
         <a

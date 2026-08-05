@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:ytdlp": "node scripts/setup-ytdlp.mjs"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.16.12",
     "@vercel/analytics": "^1.6.1",
+    "archiver": "^7.0.1",
     "exceljs": "^4.4.0",
     "googleapis": "^165.0.0",
     "jspdf": "^4.2.1",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/archiver": "^6.0.4",
     "@types/node": "^20.19.25",
     "@types/react": "^19",
     "@types/react-dom": "^19",

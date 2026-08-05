@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Readable } from 'node:stream';
 import { getVideoDownload } from '@/lib/youtube/download';
 
-// ytdl-core needs full Node APIs (streams, https) and this route streams a
-// potentially large body, so it must run on the Node.js runtime — never Edge.
+// Downloads are handled by yt-dlp (see lib/youtube/download.ts) — the same
+// engine the bulk Excel downloader uses. It needs full Node APIs (child
+// processes, streams) and this route streams a potentially large body, so it
+// must run on the Node.js runtime — never Edge.
 export const runtime = 'nodejs';
 
 // Streaming responses are inherently dynamic; opt out of any static caching.
@@ -58,8 +60,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    // ytdl-core reports the HTTP status from the watch page; 404 means the
-    // video is gone, 403 usually means age-restricted or bot-checked.
+    // yt-dlp reports the failure reason on stderr; the wrapper maps the common
+    // ones (age-gated → 403, deleted/private → 404) onto `statusCode`.
     const statusCode = (error as { statusCode?: number }).statusCode;
     // Sanitize before logging, per repo convention.
     const sanitizedId = id.replace(/[^a-zA-Z0-9_-]/g, '');

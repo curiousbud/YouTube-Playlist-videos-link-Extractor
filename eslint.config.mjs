@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // ytdl-core writes player-script caches to the working directory at
     // runtime; they are minified third-party JS and must never be linted.
     "**/*-player-script.js",
+    // Downloaded yt-dlp binary (see lib/youtube/ytdlp.ts) is not source code.
+    ".yt-dlp/**",
   ]),
 ]);
 
